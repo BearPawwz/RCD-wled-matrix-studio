@@ -1,0 +1,80 @@
+/* WLED Matrix Studio Custom Styles */
+
+/* Prevent pinch-zoom on document while allowing canvas touch drawing */
+html, body {
+  touch-action: pan-x pan-y;
+  overscroll-behavior: none;
+}
+
+/* Crisp pixel rendering */
+.image-pixelated {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Tool Buttons Active Style */
+.tool-btn.active {
+  background-color: #4f46e5 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
+}
+
+/* Palette Swatches */
+.color-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.color-swatch:hover {
+  transform: scale(1.15);
+  z-index: 10;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.color-swatch.active {
+  ring: 2px solid white;
+  transform: scale(1.1);
+  box-shadow: 0 0 12px currentColor;
+}
+
+/* Frame strip item */
+.frame-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  border: 2px solid #334155;
+  background: #000;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.frame-thumb.active {
+  border-color: #6366f1;
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
