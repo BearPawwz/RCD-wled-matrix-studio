@@ -3,59 +3,115 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>WLED Matrix Studio — Anamorphic 12x12</title>
+  <title>WLED Matrix Studio — Anamorphic 12x12 (144mm x 84mm)</title>
   <meta name="description" content="Art studio & pixel converter for 12x12 WLED matrix with 144mm x 84mm physical aspect ratio.">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#020617">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  
+  <!-- Universal Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Fallback & Core Styles -->
+  <style>
+    /* Robust base styling */
+    * { box-sizing: border-box; }
+    body {
+      background-color: #020617;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    
+    .image-pixelated {
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-crisp-edges;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    .tool-btn.active {
+      background-color: #4f46e5 !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+    }
+
+    .color-swatch {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .color-swatch:hover {
+      transform: scale(1.15);
+      z-index: 10;
+    }
+
+    .frame-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 6px;
+      border: 2px solid #334155;
+      background: #000;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .frame-thumb.active {
+      border-color: #6366f1;
+      box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+    }
+
+    /* Modal Backdrop */
+    .modal-backdrop {
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(4px);
+    }
+  </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans select-none antialiased">
   
   <!-- Header / Navigation -->
-  <header class="bg-slate-900/90 border-b border-slate-800 backdrop-blur px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
+  <header class="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-md">
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
-        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="7" height="7" rx="1"/>
-          <rect x="14" y="3" width="7" height="7" rx="1"/>
-          <rect x="14" y="14" width="7" height="7" rx="1"/>
-          <rect x="3" y="14" width="7" height="7" rx="1"/>
-        </svg>
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/25">
+        12²
       </div>
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="font-bold text-base md:text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">WLED Matrix Studio</h1>
+          <h1 class="font-bold text-base md:text-lg tracking-tight text-white">WLED Matrix Studio</h1>
           <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">12×12</span>
-          <span class="hidden sm:inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">144×84 mm</span>
+          <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">144×84 mm</span>
         </div>
-        <p class="text-[11px] text-slate-400 hidden xs:block">Physical aspect ratio compensation (1.714:1 non-square pitch)</p>
+        <p class="text-[11px] text-slate-400 hidden xs:block">Anamorphic: <strong>1.714:1</strong> (12.0mm W × 7.0mm H pitch)</p>
       </div>
     </div>
 
     <!-- Quick Actions Header -->
     <div class="flex items-center gap-1.5 md:gap-2">
-      <!-- WLED Connection Modal Trigger -->
-      <button id="btn-open-wled" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium border border-slate-700 transition-colors">
-        <span id="wled-status-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-        <span class="hidden sm:inline">WLED Link</span>
-      </button>
-
       <!-- Import Image Button -->
-      <button id="btn-open-import" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white shadow-md shadow-indigo-600/30 transition-colors">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-        <span>Import</span>
+      <button id="btn-open-import" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow transition-colors">
+        <span>📷 Import</span>
       </button>
 
       <!-- Export Button -->
-      <button id="btn-open-export" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-medium text-white shadow-md shadow-emerald-600/30 transition-colors">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span>Export</span>
+      <button id="btn-open-export" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow transition-colors">
+        <span>💾 Export</span>
       </button>
 
       <!-- Settings Button -->
-      <button id="btn-open-settings" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" title="Matrix & Physical Settings">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <button id="btn-open-settings" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" title="Settings (Dimensions & Wiring)">
+        ⚙️
       </button>
     </div>
   </header>
@@ -64,55 +120,27 @@
   <main class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
     
     <!-- LEFT / TOP TOOLBAR -->
-    <aside class="bg-slate-900 border-r border-slate-800 p-2.5 flex lg:flex-col gap-2 justify-between items-center z-20 overflow-x-auto lg:overflow-x-visible lg:overflow-y-auto">
+    <aside class="bg-slate-900 border-r border-slate-800 p-2.5 flex lg:flex-col gap-2 justify-between items-center z-20 overflow-x-auto lg:overflow-x-visible">
       
       <!-- Primary Drawing Tools -->
       <div class="flex lg:flex-col gap-1.5 items-center">
-        <!-- Pencil -->
-        <button data-tool="pencil" class="tool-btn active p-2 rounded-lg bg-indigo-600 text-white transition-all shadow" title="Pencil (Draw)">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+        <button data-tool="pencil" class="tool-btn active p-2 rounded-lg bg-indigo-600 text-white transition-all text-xs font-bold" title="Pencil">✏️</button>
+        <button data-tool="line" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Line">📏</button>
+        <button data-tool="rect" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Rectangle">◻️</button>
+        <button data-tool="circle" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold relative" title="Circle (Anamorphic / Physically Round)">
+          ⭕
+          <span class="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
         </button>
-        <!-- Line -->
-        <button data-tool="line" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all" title="Line Tool">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/></svg>
-        </button>
-        <!-- Rectangle -->
-        <button data-tool="rect" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all" title="Rectangle">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
-        </button>
-        <!-- Circle / Ellipse (Anamorphic Aware) -->
-        <button data-tool="circle" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all relative" title="Circle (Anamorphically round in physical space)">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
-          <span class="absolute bottom-0 right-0 w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-        </button>
-        <!-- Bucket Fill -->
-        <button data-tool="fill" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all" title="Flood Fill Bucket">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2c.8.8 2 .8 2.8 0L19 11Z"/><path d="m5 2 5 5"/><path d="M2 13h15"/><path d="M22 20a2 2 0 1 1-4 0c0-1.6 1.7-2.4 2-4 .3 1.6 2 2.4 2 4Z"/></svg>
-        </button>
-        <!-- Eyedropper -->
-        <button data-tool="picker" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all" title="Color Picker (Eyedropper)">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m2 22 1-1h3l9-9"/><path d="M14 4 19 9"/><path d="m18 8 2.5-2.5a2.12 2.12 0 1 0-3-3L15 5Z"/></svg>
-        </button>
-        <!-- Eraser -->
-        <button data-tool="eraser" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all" title="Eraser (Off / Black)">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
-        </button>
+        <button data-tool="fill" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Flood Fill">🪣</button>
+        <button data-tool="picker" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Eyedropper">💉</button>
+        <button data-tool="eraser" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Eraser (Turn LED Off)">🧹</button>
       </div>
 
       <!-- Action Utilities -->
       <div class="flex lg:flex-col gap-1.5 items-center">
-        <!-- Undo -->
-        <button id="btn-undo" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="Undo (Ctrl+Z)">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
-        </button>
-        <!-- Redo -->
-        <button id="btn-redo" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="Redo (Ctrl+Y)">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
-        </button>
-        <!-- Clear -->
-        <button id="btn-clear" class="p-2 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors" title="Clear Grid">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-        </button>
+        <button id="btn-undo" class="p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-colors text-xs font-bold" title="Undo (Ctrl+Z)">↩</button>
+        <button id="btn-redo" class="p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-colors text-xs font-bold" title="Redo (Ctrl+Y)">↪</button>
+        <button id="btn-clear" class="p-2 rounded-lg text-rose-400 hover:bg-rose-500/10 transition-colors text-xs font-bold" title="Clear Canvas">🗑️</button>
       </div>
     </aside>
 
@@ -120,7 +148,7 @@
     <section class="flex-1 flex flex-col overflow-hidden bg-slate-950 p-2 sm:p-4">
       
       <!-- Top Canvas Controls Bar -->
-      <div class="flex flex-wrap items-center justify-between gap-2 mb-3 bg-slate-900/60 p-2 rounded-xl border border-slate-800/80">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3 bg-slate-900/80 p-2 rounded-xl border border-slate-800">
         <!-- View Mode Switcher -->
         <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs font-medium">
           <button id="mode-physical" class="px-2.5 py-1 rounded-md bg-indigo-600 text-white shadow transition-all">
@@ -132,55 +160,55 @@
         </div>
 
         <!-- Shift & Transform buttons -->
-        <div class="flex items-center gap-1">
-          <button id="shift-up" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-2" title="Shift Up">↑</button>
-          <button id="shift-down" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-2" title="Shift Down">↓</button>
-          <button id="shift-left" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-2" title="Shift Left">←</button>
-          <button id="shift-right" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-2" title="Shift Right">→</button>
-          <button id="btn-flip-h" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-1.5" title="Flip Horizontal">⇄</button>
-          <button id="btn-flip-v" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-1.5" title="Flip Vertical">⇅</button>
+        <div class="flex items-center gap-1 text-xs">
+          <span class="text-[11px] text-slate-400 mr-1 hidden sm:inline">Shift:</span>
+          <button id="shift-up" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 px-2" title="Shift Up">↑</button>
+          <button id="shift-down" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 px-2" title="Shift Down">↓</button>
+          <button id="shift-left" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 px-2" title="Shift Left">←</button>
+          <button id="shift-right" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 px-2" title="Shift Right">→</button>
+          <button id="btn-flip-h" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 px-1.5" title="Flip Horizontal">⇄</button>
+          <button id="btn-flip-v" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 px-1.5" title="Flip Vertical">⇅</button>
         </div>
 
-        <!-- Anamorphic Notice / Pill -->
-        <div class="flex items-center gap-1.5 text-xs text-amber-300/90 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg">
+        <!-- Pitch badge -->
+        <div class="flex items-center gap-1 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg">
           <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-          <span>Pitch: <strong>12.0mm</strong> (W) × <strong>7.0mm</strong> (H)</span>
+          <span>Pitch: <strong>12.0mm</strong> × <strong>7.0mm</strong></span>
         </div>
       </div>
 
-      <!-- Main Canvas Container with Interactive Grid -->
+      <!-- Main Canvas Container -->
       <div class="flex-1 flex items-center justify-center relative overflow-hidden bg-slate-900/30 rounded-2xl border border-slate-800/80 p-2 sm:p-6 shadow-inner">
         
         <!-- Interactive Drawing Canvas -->
-        <div id="canvas-wrapper" class="relative transition-all duration-300 flex items-center justify-center shadow-2xl rounded-xl overflow-hidden bg-black border-2 border-slate-800">
-          <canvas id="paint-canvas" class="cursor-crosshair touch-none"></canvas>
+        <div id="canvas-wrapper" class="relative shadow-2xl rounded-xl overflow-hidden bg-black border-2 border-slate-800 flex items-center justify-center">
+          <canvas id="paint-canvas" width="432" height="252" class="cursor-crosshair touch-none"></canvas>
         </div>
 
-        <!-- Live Picture-In-Picture Physical Preview -->
-        <div id="pip-container" class="absolute bottom-4 right-4 bg-slate-900/90 backdrop-blur-md p-2.5 rounded-xl border border-slate-700 shadow-xl flex flex-col gap-1 z-10 max-w-[200px]">
-          <div class="flex items-center justify-between text-[10px] text-slate-400 font-medium">
+        <!-- Live Picture-In-Picture LED Glow Simulator -->
+        <div id="pip-container" class="absolute bottom-4 right-4 bg-slate-900/90 backdrop-blur-md p-2 rounded-xl border border-slate-700 shadow-xl flex flex-col gap-1 z-10 max-w-[190px]">
+          <div class="flex items-center justify-between text-[10px] text-slate-400 font-medium px-1">
             <span>REAL-WORLD LED GLOW</span>
-            <span class="text-emerald-400 font-mono">1.71:1</span>
+            <span class="text-emerald-400 font-mono">1.714:1</span>
           </div>
-          <div class="w-full flex items-center justify-center bg-black/80 rounded-lg p-1.5 border border-slate-800 overflow-hidden">
-            <canvas id="sim-canvas" width="160" height="93" class="rounded shadow"></canvas>
+          <div class="w-full flex items-center justify-center bg-black/90 rounded-lg p-1 border border-slate-800 overflow-hidden">
+            <canvas id="sim-canvas" width="168" height="98" class="rounded shadow"></canvas>
           </div>
         </div>
 
       </div>
 
       <!-- Animation / Frames bar -->
-      <div class="mt-3 bg-slate-900/70 p-2 rounded-xl border border-slate-800 flex items-center justify-between gap-3">
+      <div class="mt-3 bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex items-center justify-between gap-3">
         <div class="flex items-center gap-2 overflow-x-auto py-1" id="frames-strip">
-          <!-- Frame Thumbnails dynamically added -->
+          <!-- Frame Thumbnails inserted by JS -->
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
-          <button id="btn-add-frame" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700 flex items-center gap-1">
-            <span>+ Frame</span>
+          <button id="btn-add-frame" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700">
+            + Frame
           </button>
-          <button id="btn-play-anim" class="px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow flex items-center gap-1">
-            <span id="play-icon">▶</span>
-            <span id="play-text">Play</span>
+          <button id="btn-play-anim" class="px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow">
+            <span id="play-text">▶ Play</span>
           </button>
           <input type="range" id="anim-fps" min="1" max="15" value="4" class="w-16 accent-indigo-500" title="Animation FPS">
           <span id="fps-label" class="text-[11px] font-mono text-slate-400">4 fps</span>
@@ -202,26 +230,19 @@
           </div>
         </div>
 
-        <!-- Native Color Picker & Hex Input -->
         <div class="flex items-center gap-2">
           <input type="color" id="native-color" value="#FF0055" class="w-10 h-9 rounded cursor-pointer bg-transparent border-0 p-0">
           <input type="text" id="hex-input" value="#FF0055" maxlength="7" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-indigo-500 uppercase">
         </div>
 
-        <!-- Quick Palette Presets -->
         <div>
           <span class="text-[11px] text-slate-400 block mb-1.5 font-medium">Quick LED Swatches</span>
-          <div class="grid grid-cols-6 gap-1.5" id="preset-colors">
-            <!-- Palette generated by JS -->
-          </div>
+          <div class="grid grid-cols-6 gap-1.5" id="preset-colors"></div>
         </div>
 
-        <!-- Recent Colors -->
         <div>
           <span class="text-[11px] text-slate-400 block mb-1.5 font-medium">Recent Colors</span>
-          <div class="flex flex-wrap gap-1.5" id="recent-colors">
-            <!-- Recent colors inserted by JS -->
-          </div>
+          <div class="flex flex-wrap gap-1.5 min-h-[22px]" id="recent-colors"></div>
         </div>
       </div>
 
@@ -233,29 +254,25 @@
         </div>
 
         <div class="flex gap-1.5">
-          <input type="text" id="wled-ip-input" placeholder="e.g. 192.168.1.120" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-indigo-500">
-          <button id="btn-sync-wled" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow transition-all flex items-center gap-1">
-            <span>Push</span>
+          <input type="text" id="wled-ip-input" placeholder="e.g. 192.168.1.120" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none">
+          <button id="btn-sync-wled" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow">
+            Push
           </button>
         </div>
 
-        <div class="flex items-center justify-between pt-1">
-          <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
-            <input type="checkbox" id="wled-auto-sync" class="rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0">
-            <span>Auto-Push while drawing</span>
-          </label>
-        </div>
+        <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 pt-1">
+          <input type="checkbox" id="wled-auto-sync" class="rounded bg-slate-800 border-slate-700 text-indigo-600">
+          <span>Auto-Push while drawing</span>
+        </label>
       </div>
 
       <!-- Quick Export Actions -->
       <div class="flex flex-col gap-2">
-        <button id="btn-quick-png" class="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 flex items-center justify-center gap-2 transition-colors">
-          <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <button id="btn-quick-png" class="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 flex items-center justify-center gap-2">
           <span>Download 12×12 Pixel PNG</span>
         </button>
 
-        <button id="btn-quick-glow-png" class="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 flex items-center justify-center gap-2 transition-colors">
-          <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="4"/></svg>
+        <button id="btn-quick-glow-png" class="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 flex items-center justify-center gap-2">
           <span>Download 144×84mm Glowing Render</span>
         </button>
       </div>
@@ -264,70 +281,52 @@
 
   </main>
 
-  <!-- MODAL: IMAGE IMPORTER WITH ANAMORPHIC CORRECTION -->
-  <div id="modal-import" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-5 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
-      
+  <!-- MODAL: IMAGE IMPORTER -->
+  <div id="modal-import" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-5 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded-lg bg-indigo-600/30 text-indigo-400 flex items-center justify-center font-bold">📷</div>
-          <h3 class="font-bold text-base text-white">Anamorphic Image Importer</h3>
-        </div>
+        <h3 class="font-bold text-base text-white">Anamorphic Image Converter</h3>
         <button class="modal-close text-slate-400 hover:text-white text-lg font-bold">&times;</button>
       </div>
 
-      <!-- File Dropzone -->
-      <div id="import-dropzone" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-4 text-center cursor-pointer transition-all bg-slate-950/40">
+      <div id="import-dropzone" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-4 text-center cursor-pointer bg-slate-950/40">
         <input type="file" id="import-file-input" accept="image/*" class="hidden">
-        <div class="flex flex-col items-center gap-2">
-          <svg class="w-8 h-8 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <p class="text-xs text-slate-300 font-medium">Click to choose image or drag & drop</p>
-          <span class="text-[11px] text-slate-500">PNG, JPG, SVG, GIF, WebP</span>
-        </div>
+        <p class="text-xs text-slate-300 font-medium">Click to choose image or drag & drop</p>
+        <span class="text-[11px] text-slate-500">PNG, JPG, SVG, WebP</span>
       </div>
 
-      <!-- Image Previews: Original vs 12x12 Pixelated vs Physical Render -->
       <div class="grid grid-cols-2 gap-3 items-center bg-slate-950 p-3 rounded-xl border border-slate-800">
         <div class="flex flex-col items-center">
           <span class="text-[11px] font-semibold text-slate-400 mb-1">12×12 Matrix Grid</span>
-          <canvas id="import-matrix-preview" width="12" height="12" class="w-28 h-28 image-pixelated bg-black border border-slate-700 rounded"></canvas>
+          <canvas id="import-matrix-preview" width="12" height="12" class="w-24 h-24 image-pixelated bg-black border border-slate-700 rounded"></canvas>
         </div>
         <div class="flex flex-col items-center">
           <span class="text-[11px] font-semibold text-emerald-400 mb-1">Physical 144×84mm View</span>
           <div class="w-28 h-[65px] bg-black border border-slate-700 rounded overflow-hidden flex items-center justify-center">
             <canvas id="import-physical-preview" width="144" height="84" class="w-full h-full"></canvas>
           </div>
-          <span class="text-[10px] text-slate-500 mt-1">Simulates real LEDs</span>
         </div>
       </div>
 
-      <!-- Anamorphic & Dithering Controls -->
       <div class="space-y-3 text-xs">
         <div>
           <label class="font-semibold text-slate-300 block mb-1">Aspect Ratio Mode</label>
           <div class="grid grid-cols-2 gap-2">
             <button id="import-mode-anamorphic" class="p-2 rounded-lg bg-indigo-600 text-white font-medium border border-indigo-500 text-left">
-              <div class="font-bold flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                Anamorphic Corrected
-              </div>
-              <p class="text-[10px] text-indigo-200 mt-0.5">Circles stay round on the 144×84mm physical LEDs</p>
+              <div class="font-bold">Anamorphic (Circles stay round!)</div>
             </button>
-            <button id="import-mode-stretch" class="p-2 rounded-lg bg-slate-800 text-slate-300 font-medium border border-slate-700 text-left hover:bg-slate-750">
-              <div class="font-bold">Square 1:1 Fit</div>
-              <p class="text-[10px] text-slate-400 mt-0.5">Direct 12×12 map (will stretch physically)</p>
+            <button id="import-mode-stretch" class="p-2 rounded-lg bg-slate-800 text-slate-300 font-medium border border-slate-700 text-left">
+              <div class="font-bold">Square 1:1 (Stretch)</div>
             </button>
           </div>
         </div>
 
-        <!-- Dithering & Adjustments -->
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="font-semibold text-slate-300 block mb-1">Dithering</label>
             <select id="import-dither" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white">
               <option value="none">Nearest / Sharp</option>
-              <option value="floyd" selected>Floyd-Steinberg (Smooth)</option>
-              <option value="bayer">Bayer 4x4 (Retro 8-bit)</option>
+              <option value="floyd" selected>Floyd-Steinberg</option>
             </select>
           </div>
           <div>
@@ -337,66 +336,36 @@
         </div>
       </div>
 
-      <!-- Actions -->
       <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
         <button class="modal-close px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">Cancel</button>
-        <button id="btn-commit-import" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-lg shadow-indigo-600/30">Apply to Canvas</button>
+        <button id="btn-commit-import" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow">Apply to Canvas</button>
       </div>
-
     </div>
   </div>
 
-  <!-- MODAL: EXPORT & WLED FORMATS -->
-  <div id="modal-export" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <!-- MODAL: EXPORT -->
+  <div id="modal-export" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-5 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded-lg bg-emerald-600/30 text-emerald-400 flex items-center justify-center font-bold">💾</div>
-          <h3 class="font-bold text-base text-white">Export & Save Art</h3>
-        </div>
+        <h3 class="font-bold text-base text-white">Export & Save Art</h3>
         <button class="modal-close text-slate-400 hover:text-white text-lg font-bold">&times;</button>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <!-- 12x12 Pixel PNG -->
-        <button id="export-png-12" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-left transition-colors flex flex-col gap-1">
-          <span class="font-bold text-sm text-white">12×12 Pixel PNG</span>
-          <p class="text-[11px] text-slate-400">Pure 12x12 image file for SD cards, WLED filesystem or LedFx.</p>
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <button id="export-wled-json" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-emerald-300 font-semibold">
+          📋 Copy WLED JSON
         </button>
-
-        <!-- High-Res Physical Render -->
-        <button id="export-png-glow" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-left transition-colors flex flex-col gap-1">
-          <span class="font-bold text-sm text-white">144×84mm Glowing Render</span>
-          <p class="text-[11px] text-slate-400">Realistic 1440×840px mock photo with LED glow and pitch spacing.</p>
-        </button>
-
-        <!-- WLED JSON Preset -->
-        <button id="export-wled-json" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-left transition-colors flex flex-col gap-1">
-          <span class="font-bold text-sm text-emerald-300">WLED Preset JSON</span>
-          <p class="text-[11px] text-slate-400">Ready to paste into WLED presets or HTTP curl command.</p>
-        </button>
-
-        <!-- FastLED / Arduino C++ -->
-        <button id="export-fastled-c" class="p-3 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-left transition-colors flex flex-col gap-1">
-          <span class="font-bold text-sm text-indigo-300">FastLED C++ Header (.h)</span>
-          <p class="text-[11px] text-slate-400">PROGMEM array formatted for Arduino or ESP32 FastLED sketch.</p>
+        <button id="export-fastled-c" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-indigo-300 font-semibold">
+          📋 Copy FastLED C++ (.h)
         </button>
       </div>
 
-      <!-- JSON Preview Box -->
-      <div class="flex flex-col gap-1.5">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold text-slate-300">Payload Preview / Copy:</span>
-          <button id="btn-copy-code" class="text-[11px] text-indigo-400 hover:text-indigo-300 font-semibold">Copy to Clipboard</button>
-        </div>
-        <textarea id="export-code-box" readonly class="w-full h-28 bg-slate-950 font-mono text-[11px] text-emerald-400 p-2.5 rounded-lg border border-slate-800 resize-none focus:outline-none"></textarea>
-      </div>
-
+      <textarea id="export-code-box" readonly class="w-full h-36 bg-slate-950 font-mono text-[11px] text-emerald-400 p-2.5 rounded-lg border border-slate-800 resize-none"></textarea>
     </div>
   </div>
 
-  <!-- MODAL: MATRIX PHYSICAL WIRING & DIMENSIONS -->
-  <div id="modal-settings" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <!-- MODAL: SETTINGS -->
+  <div id="modal-settings" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 shadow-2xl flex flex-col gap-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <h3 class="font-bold text-base text-white">Matrix Dimensions & Wiring</h3>
@@ -404,7 +373,6 @@
       </div>
 
       <div class="space-y-3 text-xs">
-        <!-- Physical Dimensions -->
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="font-semibold text-slate-300 block mb-1">Physical Width (mm)</label>
@@ -416,18 +384,17 @@
           </div>
         </div>
 
-        <!-- Wiring Orientation -->
         <div>
-          <label class="font-semibold text-slate-300 block mb-1">LED Strip Wiring Direction</label>
+          <label class="font-semibold text-slate-300 block mb-1">Strip Wiring Direction</label>
           <select id="setting-wiring-dir" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white">
-            <option value="vertical" selected>Vertical Strips (12 strips of 12 LEDs @ 7mm pitch, spaced 12mm)</option>
-            <option value="horizontal">Horizontal Strips (12 strips of 12 LEDs @ 12mm pitch, spaced 7mm)</option>
+            <option value="vertical" selected>Vertical Strips (12 strips along height)</option>
+            <option value="horizontal">Horizontal Strips (12 strips along width)</option>
           </select>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="font-semibold text-slate-300 block mb-1">Strip Layout</label>
+            <label class="font-semibold text-slate-300 block mb-1">Layout</label>
             <select id="setting-serpentine" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white">
               <option value="true" selected>Serpentine (Zig-zag)</option>
               <option value="false">Non-Serpentine (Parallel)</option>
@@ -451,6 +418,844 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <!-- Integrated Standalone Engine Script -->
+  <script>
+    // Bulletproof State Architecture
+    function createBlankGrid(w = 12, h = 12) {
+      return Array.from({ length: h }, () => Array(w).fill('#000000'));
+    }
+
+    const state = {
+      width: 12,
+      height: 12,
+      widthMm: 144,
+      heightMm: 84,
+      get pixelRatio() {
+        return (this.widthMm / this.width) / (this.heightMm / this.height); // 1.714
+      },
+      viewMode: 'physical',
+      activeTool: 'pencil',
+      currentColor: '#FF0055',
+      recentColors: ['#FF0055', '#FF7700', '#FFEA00', '#00FF66', '#00E5FF', '#7B2CBF', '#FFFFFF', '#000000'],
+      frames: [createBlankGrid(12, 12)], // Initialized immediately so never undefined!
+      currentFrameIdx: 0,
+      isPlaying: false,
+      fps: 4,
+      playTimer: null,
+      history: [createBlankGrid(12, 12)],
+      historyStep: 0,
+      isPointerDown: false,
+      lastCoord: null,
+      startCoord: null,
+      dragSnapshot: null,
+      wledIp: localStorage.getItem('wled_ip') || '',
+      wledAutoSync: false,
+      wiring: {
+        stripOrientation: 'vertical',
+        serpentine: true,
+        startCorner: 'top-left'
+      }
+    };
+
+    let paintCanvas, paintCtx;
+    let simCanvas, simCtx;
+    let importOriginalImg = null;
+    let importMode = 'anamorphic';
+
+    const PALETTES = [
+      '#FF0000', '#FF4500', '#FFA500', '#FFD700', '#FFFF00', '#ADFF2F',
+      '#00FF00', '#00FA9A', '#00FFFF', '#1E90FF', '#0000FF', '#8A2BE2',
+      '#FF00FF', '#FF1493', '#FFFFFF', '#E0E0E0', '#707070', '#000000'
+    ];
+
+    function getCurrentGrid() {
+      if (!state.frames || state.frames.length === 0 || !state.frames[state.currentFrameIdx]) {
+        state.frames = [createBlankGrid(state.width, state.height)];
+        state.currentFrameIdx = 0;
+      }
+      return state.frames[state.currentFrameIdx];
+    }
+
+    function cloneGrid(grid) {
+      return grid.map(row => [...row]);
+    }
+
+    // Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      paintCanvas = document.getElementById('paint-canvas');
+      paintCtx = paintCanvas.getContext('2d');
+      simCanvas = document.getElementById('sim-canvas');
+      simCtx = simCanvas.getContext('2d');
+
+      initColorPickers();
+      initTools();
+      initCanvasEvents();
+      initTransforms();
+      initWledSettings();
+      initModals();
+
+      resizeCanvasView();
+      window.addEventListener('resize', resizeCanvasView);
+      renderCanvas();
+      renderSimulation();
+      renderFramesStrip();
+    });
+
+    function resizeCanvasView() {
+      const maxWidth = Math.min(window.innerWidth - 40, 432);
+      const maxHeight = Math.min(window.innerHeight - 320, 360);
+
+      let targetW, targetH;
+      if (state.viewMode === 'physical') {
+        const aspect = state.widthMm / state.heightMm; // 1.714
+        targetW = maxWidth;
+        targetH = targetW / aspect;
+        if (targetH > maxHeight) {
+          targetH = maxHeight;
+          targetW = targetH * aspect;
+        }
+      } else {
+        const size = Math.min(maxWidth, maxHeight, 300);
+        targetW = size;
+        targetH = size;
+      }
+
+      paintCanvas.width = Math.round(targetW);
+      paintCanvas.height = Math.round(targetH);
+
+      renderCanvas();
+    }
+
+    function renderCanvas() {
+      if (!paintCtx) return;
+      const grid = getCurrentGrid();
+      const w = paintCanvas.width;
+      const h = paintCanvas.height;
+      const cellW = w / state.width;
+      const cellH = h / state.height;
+
+      paintCtx.fillStyle = '#05050a';
+      paintCtx.fillRect(0, 0, w, h);
+
+      const inset = Math.max(1.5, Math.min(cellW, cellH) * 0.08);
+
+      for (let y = 0; y < state.height; y++) {
+        for (let x = 0; x < state.width; x++) {
+          const color = grid[y][x];
+          const isBlack = color === '#000000' || color === '#000';
+          const cx = x * cellW;
+          const cy = y * cellH;
+
+          // LED Bezel
+          paintCtx.fillStyle = '#111827';
+          paintCtx.fillRect(cx, cy, cellW, cellH);
+
+          // LED core
+          paintCtx.fillStyle = isBlack ? '#1e293b' : color;
+          paintCtx.beginPath();
+          if (paintCtx.roundRect) {
+            paintCtx.roundRect(cx + inset, cy + inset, cellW - inset * 2, cellH - inset * 2, 4);
+          } else {
+            paintCtx.rect(cx + inset, cy + inset, cellW - inset * 2, cellH - inset * 2);
+          }
+          paintCtx.fill();
+
+          if (!isBlack) {
+            paintCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            paintCtx.beginPath();
+            paintCtx.ellipse(cx + cellW / 2, cy + cellH / 2, Math.max(2, (cellW - inset * 2) * 0.25), Math.max(2, (cellH - inset * 2) * 0.25), 0, 0, Math.PI * 2);
+            paintCtx.fill();
+          }
+
+          paintCtx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+          paintCtx.strokeRect(cx, cy, cellW, cellH);
+        }
+      }
+
+      renderSimulation();
+    }
+
+    function renderSimulation(tCanvas = simCanvas, tCtx = simCtx) {
+      if (!tCtx) return;
+      const grid = getCurrentGrid();
+      const w = tCanvas.width;
+      const h = tCanvas.height;
+
+      tCtx.fillStyle = '#05070d';
+      tCtx.fillRect(0, 0, w, h);
+
+      const cellW = w / state.width;
+      const cellH = h / state.height;
+      const ledRadius = Math.min(cellW, cellH) * 0.32;
+
+      // Glow pass
+      tCtx.save();
+      tCtx.globalCompositeOperation = 'screen';
+      for (let y = 0; y < state.height; y++) {
+        for (let x = 0; x < state.width; x++) {
+          const color = grid[y][x];
+          if (color === '#000000') continue;
+          const cx = x * cellW + cellW / 2;
+          const cy = y * cellH + cellH / 2;
+          const grad = tCtx.createRadialGradient(cx, cy, ledRadius * 0.4, cx, cy, ledRadius * 2.8);
+          grad.addColorStop(0, color);
+          grad.addColorStop(0.5, color + '66');
+          grad.addColorStop(1, 'rgba(0,0,0,0)');
+          tCtx.fillStyle = grad;
+          tCtx.beginPath();
+          tCtx.arc(cx, cy, ledRadius * 2.8, 0, Math.PI * 2);
+          tCtx.fill();
+        }
+      }
+      tCtx.restore();
+
+      // Diode pass
+      for (let y = 0; y < state.height; y++) {
+        for (let x = 0; x < state.width; x++) {
+          const color = grid[y][x];
+          const isBlack = color === '#000000';
+          const cx = x * cellW + cellW / 2;
+          const cy = y * cellH + cellH / 2;
+
+          tCtx.fillStyle = '#151a24';
+          tCtx.fillRect(cx - ledRadius * 0.8, cy - ledRadius * 0.8, ledRadius * 1.6, ledRadius * 1.6);
+
+          tCtx.fillStyle = isBlack ? '#242b38' : color;
+          tCtx.beginPath();
+          tCtx.arc(cx, cy, ledRadius, 0, Math.PI * 2);
+          tCtx.fill();
+
+          if (!isBlack) {
+            tCtx.fillStyle = '#ffffff';
+            tCtx.beginPath();
+            tCtx.arc(cx, cy, ledRadius * 0.4, 0, Math.PI * 2);
+            tCtx.fill();
+          }
+        }
+      }
+    }
+
+    function getCellCoord(e) {
+      const rect = paintCanvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const x = Math.floor(((clientX - rect.left) / rect.width) * state.width);
+      const y = Math.floor(((clientY - rect.top) / rect.height) * state.height);
+      return {
+        x: Math.max(0, Math.min(state.width - 1, x)),
+        y: Math.max(0, Math.min(state.height - 1, y))
+      };
+    }
+
+    function initCanvasEvents() {
+      const startDraw = (e) => {
+        e.preventDefault();
+        state.isPointerDown = true;
+        const coord = getCellCoord(e);
+        state.startCoord = coord;
+        state.lastCoord = coord;
+        state.dragSnapshot = cloneGrid(getCurrentGrid());
+        applyTool(coord.x, coord.y);
+      };
+
+      const moveDraw = (e) => {
+        if (!state.isPointerDown) return;
+        e.preventDefault();
+        const coord = getCellCoord(e);
+        if (state.activeTool === 'pencil' || state.activeTool === 'eraser') {
+          if (!state.lastCoord || coord.x !== state.lastCoord.x || coord.y !== state.lastCoord.y) {
+            applyTool(coord.x, coord.y);
+            state.lastCoord = coord;
+          }
+        } else if (['line', 'rect', 'circle'].includes(state.activeTool)) {
+          state.frames[state.currentFrameIdx] = cloneGrid(state.dragSnapshot);
+          applyDragShape(state.startCoord, coord);
+          renderCanvas();
+        }
+      };
+
+      const endDraw = () => {
+        if (!state.isPointerDown) return;
+        state.isPointerDown = false;
+        pushHistory();
+        renderFramesStrip();
+        if (state.wledAutoSync) sendToWled();
+      };
+
+      paintCanvas.addEventListener('mousedown', startDraw);
+      window.addEventListener('mousemove', moveDraw);
+      window.addEventListener('mouseup', endDraw);
+
+      paintCanvas.addEventListener('touchstart', startDraw, { passive: false });
+      window.addEventListener('touchmove', moveDraw, { passive: false });
+      window.addEventListener('touchend', endDraw);
+    }
+
+    function applyTool(x, y) {
+      const grid = getCurrentGrid();
+      if (state.activeTool === 'pencil') {
+        grid[y][x] = state.currentColor;
+        recordRecentColor(state.currentColor);
+      } else if (state.activeTool === 'eraser') {
+        grid[y][x] = '#000000';
+      } else if (state.activeTool === 'picker') {
+        setColor(grid[y][x]);
+        setActiveTool('pencil');
+      } else if (state.activeTool === 'fill') {
+        floodFill(x, y, state.currentColor);
+      }
+      renderCanvas();
+    }
+
+    function applyDragShape(start, end) {
+      const grid = getCurrentGrid();
+      if (state.activeTool === 'line') {
+        drawLine(grid, start.x, start.y, end.x, end.y, state.currentColor);
+      } else if (state.activeTool === 'rect') {
+        const x0 = Math.min(start.x, end.x), x1 = Math.max(start.x, end.x);
+        const y0 = Math.min(start.y, end.y), y1 = Math.max(start.y, end.y);
+        for (let y = y0; y <= y1; y++) {
+          for (let x = x0; x <= x1; x++) {
+            if (x === x0 || x === x1 || y === y0 || y === y1) grid[y][x] = state.currentColor;
+          }
+        }
+      } else if (state.activeTool === 'circle') {
+        const cx = (start.x + end.x) / 2;
+        const cy = (start.y + end.y) / 2;
+        const rx = Math.abs(end.x - start.x) / 2;
+        const ry = rx * state.pixelRatio; // Anamorphic physical compensation!
+        for (let a = 0; a < Math.PI * 2; a += 0.08) {
+          const px = Math.round(cx + Math.cos(a) * rx);
+          const py = Math.round(cy + Math.sin(a) * ry);
+          if (px >= 0 && px < state.width && py >= 0 && py < state.height) grid[py][px] = state.currentColor;
+        }
+      }
+    }
+
+    function drawLine(grid, x0, y0, x1, y1, color) {
+      const dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0);
+      const sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+      let err = dx - dy;
+      while (true) {
+        if (x0 >= 0 && x0 < state.width && y0 >= 0 && y0 < state.height) grid[y0][x0] = color;
+        if (x0 === x1 && y0 === y1) break;
+        const e2 = 2 * err;
+        if (e2 > -dy) { err -= dy; x0 += sx; }
+        if (e2 < dx) { err += dx; y0 += sy; }
+      }
+    }
+
+    function floodFill(sx, sy, target) {
+      const grid = getCurrentGrid();
+      const orig = grid[sy][sx];
+      if (orig === target) return;
+      const queue = [[sx, sy]];
+      const seen = new Set();
+      while (queue.length) {
+        const [x, y] = queue.pop();
+        const key = `${x},${y}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        if (x < 0 || x >= state.width || y < 0 || y >= state.height || grid[y][x] !== orig) continue;
+        grid[y][x] = target;
+        queue.push([x+1, y], [x-1, y], [x, y+1], [x, y-1]);
+      }
+    }
+
+    function pushHistory() {
+      state.historyStep++;
+      state.history = state.history.slice(0, state.historyStep);
+      state.history.push(cloneGrid(getCurrentGrid()));
+      if (state.history.length > 30) {
+        state.history.shift();
+        state.historyStep--;
+      }
+    }
+
+    function undo() {
+      if (state.historyStep > 0) {
+        state.historyStep--;
+        state.frames[state.currentFrameIdx] = cloneGrid(state.history[state.historyStep]);
+        renderCanvas();
+        renderFramesStrip();
+      }
+    }
+
+    function redo() {
+      if (state.historyStep < state.history.length - 1) {
+        state.historyStep++;
+        state.frames[state.currentFrameIdx] = cloneGrid(state.history[state.historyStep]);
+        renderCanvas();
+        renderFramesStrip();
+      }
+    }
+
+    function initTransforms() {
+      document.getElementById('btn-undo').onclick = undo;
+      document.getElementById('btn-redo').onclick = redo;
+      window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
+        else if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); redo(); }
+      });
+
+      document.getElementById('btn-clear').onclick = () => {
+        state.frames[state.currentFrameIdx] = createBlankGrid(state.width, state.height);
+        renderCanvas();
+        pushHistory();
+        renderFramesStrip();
+      };
+
+      const shift = (dx, dy) => {
+        const oldGrid = getCurrentGrid();
+        const next = createBlankGrid(state.width, state.height);
+        for (let y = 0; y < state.height; y++) {
+          for (let x = 0; x < state.width; x++) {
+            next[(y + dy + state.height) % state.height][(x + dx + state.width) % state.width] = oldGrid[y][x];
+          }
+        }
+        state.frames[state.currentFrameIdx] = next;
+        renderCanvas();
+        pushHistory();
+        renderFramesStrip();
+      };
+
+      document.getElementById('shift-up').onclick = () => shift(0, -1);
+      document.getElementById('shift-down').onclick = () => shift(0, 1);
+      document.getElementById('shift-left').onclick = () => shift(-1, 0);
+      document.getElementById('shift-right').onclick = () => shift(1, 0);
+
+      document.getElementById('btn-flip-h').onclick = () => {
+        getCurrentGrid().forEach(r => r.reverse());
+        renderCanvas();
+        pushHistory();
+        renderFramesStrip();
+      };
+
+      document.getElementById('btn-flip-v').onclick = () => {
+        getCurrentGrid().reverse();
+        renderCanvas();
+        pushHistory();
+        renderFramesStrip();
+      };
+
+      document.getElementById('mode-physical').onclick = () => {
+        state.viewMode = 'physical';
+        document.getElementById('mode-physical').className = 'px-2.5 py-1 rounded-md bg-indigo-600 text-white shadow transition-all';
+        document.getElementById('mode-square').className = 'px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition-all';
+        resizeCanvasView();
+      };
+
+      document.getElementById('mode-square').onclick = () => {
+        state.viewMode = 'square';
+        document.getElementById('mode-square').className = 'px-2.5 py-1 rounded-md bg-indigo-600 text-white shadow transition-all';
+        document.getElementById('mode-physical').className = 'px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition-all';
+        resizeCanvasView();
+      };
+    }
+
+    function initTools() {
+      document.querySelectorAll('.tool-btn').forEach(btn => {
+        btn.onclick = () => setActiveTool(btn.dataset.tool);
+      });
+    }
+
+    function setActiveTool(tool) {
+      state.activeTool = tool;
+      document.querySelectorAll('.tool-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tool === tool);
+      });
+    }
+
+    function initColorPickers() {
+      const nativeColor = document.getElementById('native-color');
+      const hexInput = document.getElementById('hex-input');
+      const presetContainer = document.getElementById('preset-colors');
+
+      nativeColor.oninput = (e) => setColor(e.target.value);
+      hexInput.onchange = (e) => setColor(e.target.value);
+
+      presetContainer.innerHTML = '';
+      PALETTES.forEach(col => {
+        const swatch = document.createElement('div');
+        swatch.className = 'color-swatch';
+        swatch.style.backgroundColor = col;
+        swatch.onclick = () => setColor(col);
+        presetContainer.appendChild(swatch);
+      });
+
+      renderRecentColors();
+    }
+
+    function setColor(hex) {
+      let val = hex.trim();
+      if (!val.startsWith('#')) val = '#' + val;
+      if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+        state.currentColor = val.toUpperCase();
+        document.getElementById('native-color').value = state.currentColor;
+        document.getElementById('hex-input').value = state.currentColor;
+        document.getElementById('hex-label').textContent = state.currentColor;
+        document.getElementById('current-color-preview').style.backgroundColor = state.currentColor;
+      }
+    }
+
+    function recordRecentColor(color) {
+      if (color === '#000000') return;
+      state.recentColors = [color, ...state.recentColors.filter(c => c !== color)].slice(0, 10);
+      renderRecentColors();
+    }
+
+    function renderRecentColors() {
+      const container = document.getElementById('recent-colors');
+      container.innerHTML = '';
+      state.recentColors.forEach(col => {
+        const swatch = document.createElement('div');
+        swatch.className = 'w-5 h-5 rounded-md cursor-pointer border border-white/20 hover:scale-110 transition-transform';
+        swatch.style.backgroundColor = col;
+        swatch.onclick = () => setColor(col);
+        container.appendChild(swatch);
+      });
+    }
+
+    // Animation Frames
+    function renderFramesStrip() {
+      const container = document.getElementById('frames-strip');
+      container.innerHTML = '';
+
+      state.frames.forEach((frame, idx) => {
+        const thumb = document.createElement('div');
+        thumb.className = `frame-thumb ${idx === state.currentFrameIdx ? 'active' : ''}`;
+        
+        const thumbCanvas = document.createElement('canvas');
+        thumbCanvas.width = 12;
+        thumbCanvas.height = 12;
+        thumbCanvas.className = 'w-8 h-8 image-pixelated rounded';
+        const ctx = thumbCanvas.getContext('2d');
+
+        for (let y = 0; y < 12; y++) {
+          for (let x = 0; x < 12; x++) {
+            ctx.fillStyle = frame[y][x];
+            ctx.fillRect(x, y, 1, 1);
+          }
+        }
+
+        thumb.appendChild(thumbCanvas);
+        thumb.onclick = () => {
+          state.currentFrameIdx = idx;
+          renderCanvas();
+          renderFramesStrip();
+        };
+
+        container.appendChild(thumb);
+      });
+    }
+
+    document.getElementById('btn-add-frame').onclick = () => {
+      state.frames.push(cloneGrid(getCurrentGrid()));
+      state.currentFrameIdx = state.frames.length - 1;
+      renderCanvas();
+      renderFramesStrip();
+      pushHistory();
+    };
+
+    document.getElementById('anim-fps').oninput = (e) => {
+      state.fps = parseInt(e.target.value);
+      document.getElementById('fps-label').textContent = `${state.fps} fps`;
+      if (state.isPlaying) {
+        clearInterval(state.playTimer);
+        startAnimation();
+      }
+    };
+
+    document.getElementById('btn-play-anim').onclick = () => {
+      if (state.isPlaying) {
+        state.isPlaying = false;
+        clearInterval(state.playTimer);
+        document.getElementById('play-text').textContent = '▶ Play';
+      } else {
+        startAnimation();
+      }
+    };
+
+    function startAnimation() {
+      if (state.frames.length <= 1) return;
+      state.isPlaying = true;
+      document.getElementById('play-text').textContent = '⏹ Stop';
+      state.playTimer = setInterval(() => {
+        state.currentFrameIdx = (state.currentFrameIdx + 1) % state.frames.length;
+        renderCanvas();
+        renderFramesStrip();
+        if (state.wledAutoSync) sendToWled();
+      }, 1000 / state.fps);
+    }
+
+    // WLED Integration
+    function initWledSettings() {
+      const ipInput = document.getElementById('wled-ip-input');
+      if (state.wledIp) ipInput.value = state.wledIp;
+
+      ipInput.onchange = (e) => {
+        state.wledIp = e.target.value.trim();
+        localStorage.setItem('wled_ip', state.wledIp);
+      };
+
+      document.getElementById('btn-sync-wled').onclick = sendToWled;
+      document.getElementById('wled-auto-sync').onchange = (e) => {
+        state.wledAutoSync = e.target.checked;
+      };
+
+      // Settings modal inputs
+      document.getElementById('setting-width-mm').onchange = (e) => {
+        state.widthMm = parseFloat(e.target.value) || 144;
+        resizeCanvasView();
+      };
+      document.getElementById('setting-height-mm').onchange = (e) => {
+        state.heightMm = parseFloat(e.target.value) || 84;
+        resizeCanvasView();
+      };
+      document.getElementById('setting-wiring-dir').onchange = (e) => {
+        state.wiring.stripOrientation = e.target.value;
+      };
+      document.getElementById('setting-serpentine').onchange = (e) => {
+        state.wiring.serpentine = e.target.value === 'true';
+      };
+      document.getElementById('setting-start-corner').onchange = (e) => {
+        state.wiring.startCorner = e.target.value;
+      };
+    }
+
+    function getLinearLedIndex(x, y) {
+      let col = x;
+      let row = y;
+      if (state.wiring.startCorner.includes('right')) col = state.width - 1 - col;
+      if (state.wiring.startCorner.includes('bottom')) row = state.height - 1 - row;
+
+      if (state.wiring.stripOrientation === 'vertical') {
+        const isRev = state.wiring.serpentine && (col % 2 === 1);
+        const stripRow = isRev ? (state.height - 1 - row) : row;
+        return col * state.height + stripRow;
+      } else {
+        const isRev = state.wiring.serpentine && (row % 2 === 1);
+        const stripCol = isRev ? (state.width - 1 - col) : col;
+        return row * state.width + stripCol;
+      }
+    }
+
+    async function sendToWled() {
+      if (!state.wledIp) {
+        alert('Please enter your WLED device IP address first!');
+        return;
+      }
+
+      const pill = document.getElementById('wled-pill-status');
+      pill.textContent = 'Pushing...';
+      pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-amber-500/20 text-amber-300';
+
+      const grid = getCurrentGrid();
+      const iPayload = [];
+      for (let y = 0; y < state.height; y++) {
+        for (let x = 0; x < state.width; x++) {
+          const idx = getLinearLedIndex(x, y);
+          iPayload.push(idx, grid[y][x].replace('#', ''));
+        }
+      }
+
+      try {
+        const res = await fetch(`http://${state.wledIp}/json/state`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ on: true, seg: [{ id: 0, i: iPayload }] })
+        });
+        if (res.ok) {
+          pill.textContent = 'Synced';
+          pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-emerald-500/20 text-emerald-400';
+        } else {
+          throw new Error('HTTP ' + res.status);
+        }
+      } catch (err) {
+        pill.textContent = 'Error';
+        pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-rose-500/20 text-rose-400';
+      }
+    }
+
+    // Modal Handlers & Importer
+    function initModals() {
+      const modalImport = document.getElementById('modal-import');
+      const modalExport = document.getElementById('modal-export');
+      const modalSettings = document.getElementById('modal-settings');
+
+      document.getElementById('btn-open-import').onclick = () => modalImport.classList.remove('hidden');
+      document.getElementById('btn-open-export').onclick = () => {
+        modalExport.classList.remove('hidden');
+        updateExportBox();
+      };
+      document.getElementById('btn-open-settings').onclick = () => modalSettings.classList.remove('hidden');
+
+      document.querySelectorAll('.modal-close').forEach(btn => {
+        btn.onclick = () => {
+          modalImport.classList.add('hidden');
+          modalExport.classList.add('hidden');
+          modalSettings.classList.add('hidden');
+        };
+      });
+
+      // Dropzone & File upload
+      const dropzone = document.getElementById('import-dropzone');
+      const fileInp = document.getElementById('import-file-input');
+      dropzone.onclick = () => fileInp.click();
+      fileInp.onchange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+          const reader = new FileReader();
+          reader.onload = (re) => {
+            const img = new Image();
+            img.onload = () => { importOriginalImg = img; updateImportPreview(); };
+            img.src = re.target.result;
+          };
+          reader.readAsDataURL(e.target.files[0]);
+        }
+      };
+
+      document.getElementById('import-mode-anamorphic').onclick = () => {
+        importMode = 'anamorphic';
+        document.getElementById('import-mode-anamorphic').className = 'p-2 rounded-lg bg-indigo-600 text-white font-medium border border-indigo-500 text-left';
+        document.getElementById('import-mode-stretch').className = 'p-2 rounded-lg bg-slate-800 text-slate-300 font-medium border border-slate-700 text-left';
+        updateImportPreview();
+      };
+      document.getElementById('import-mode-stretch').onclick = () => {
+        importMode = 'stretch';
+        document.getElementById('import-mode-stretch').className = 'p-2 rounded-lg bg-indigo-600 text-white font-medium border border-indigo-500 text-left';
+        document.getElementById('import-mode-anamorphic').className = 'p-2 rounded-lg bg-slate-800 text-slate-300 font-medium border border-slate-700 text-left';
+        updateImportPreview();
+      };
+
+      document.getElementById('import-dither').onchange = updateImportPreview;
+      document.getElementById('import-brightness').oninput = (e) => {
+        document.getElementById('val-brightness').textContent = `${e.target.value}%`;
+        updateImportPreview();
+      };
+
+      document.getElementById('btn-commit-import').onclick = () => {
+        const prev = document.getElementById('import-matrix-preview');
+        const data = prev.getContext('2d').getImageData(0, 0, 12, 12).data;
+        const grid = getCurrentGrid();
+        for (let y = 0; y < 12; y++) {
+          for (let x = 0; x < 12; x++) {
+            const idx = (y * 12 + x) * 4;
+            grid[y][x] = '#' + [data[idx], data[idx+1], data[idx+2]].map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+          }
+        }
+        renderCanvas();
+        pushHistory();
+        renderFramesStrip();
+        modalImport.classList.add('hidden');
+      };
+    }
+
+    function updateImportPreview() {
+      if (!importOriginalImg) return;
+      const mCanvas = document.getElementById('import-matrix-preview');
+      const mCtx = mCanvas.getContext('2d');
+      const bright = parseInt(document.getElementById('import-brightness').value) / 100;
+
+      const sample = document.createElement('canvas');
+      sample.width = 12; sample.height = 12;
+      const sCtx = sample.getContext('2d');
+      sCtx.fillStyle = '#000000';
+      sCtx.fillRect(0, 0, 12, 12);
+
+      if (importMode === 'anamorphic') {
+        const pAspect = state.widthMm / state.heightMm;
+        const iAspect = importOriginalImg.width / importOriginalImg.height;
+        let dW, dH;
+        if (iAspect > pAspect) { dW = 12; dH = 12 * (pAspect / iAspect); }
+        else { dH = 12; dW = 12 * (iAspect / pAspect); }
+        sCtx.drawImage(importOriginalImg, (12 - dW) / 2, (12 - dH) / 2, dW, dH);
+      } else {
+        sCtx.drawImage(importOriginalImg, 0, 0, 12, 12);
+      }
+
+      const imgData = sCtx.getImageData(0, 0, 12, 12);
+      for (let i = 0; i < imgData.data.length; i += 4) {
+        imgData.data[i] = Math.min(255, imgData.data[i] * bright);
+        imgData.data[i+1] = Math.min(255, imgData.data[i+1] * bright);
+        imgData.data[i+2] = Math.min(255, imgData.data[i+2] * bright);
+      }
+      mCtx.putImageData(imgData, 0, 0);
+
+      const pCanvas = document.getElementById('import-physical-preview');
+      const pCtx = pCanvas.getContext('2d');
+      pCtx.fillStyle = '#05070d';
+      pCtx.fillRect(0, 0, 144, 84);
+      for (let y = 0; y < 12; y++) {
+        for (let x = 0; x < 12; x++) {
+          const idx = (y * 12 + x) * 4;
+          pCtx.fillStyle = `rgb(${imgData.data[idx]},${imgData.data[idx+1]},${imgData.data[idx+2]})`;
+          pCtx.beginPath();
+          pCtx.arc(x * 12 + 6, y * 7 + 3.5, 2.8, 0, Math.PI * 2);
+          pCtx.fill();
+        }
+      }
+    }
+
+    function updateExportBox() {
+      const grid = getCurrentGrid();
+      const iArr = [];
+      for (let y = 0; y < 12; y++) {
+        for (let x = 0; x < 12; x++) {
+          const idx = getLinearLedIndex(x, y);
+          iArr.push(idx, grid[y][x].replace('#', ''));
+        }
+      }
+      document.getElementById('export-code-box').value = JSON.stringify({ on: true, bri: 128, seg: [{ id: 0, i: iArr }] }, null, 2);
+    }
+
+    document.getElementById('export-wled-json').onclick = () => {
+      updateExportBox();
+      navigator.clipboard.writeText(document.getElementById('export-code-box').value);
+      alert('WLED JSON copied to clipboard!');
+    };
+
+    document.getElementById('export-fastled-c').onclick = () => {
+      const grid = getCurrentGrid();
+      let code = '// FastLED PROGMEM 12x12 Frame\nconst uint32_t PROGMEM matrix_12x12[144] = {\n  ';
+      for (let y = 0; y < 12; y++) {
+        for (let x = 0; x < 12; x++) {
+          const idx = getLinearLedIndex(x, y);
+          code += '0x' + grid[y][x].replace('#', '') + (idx < 143 ? ', ' : '');
+        }
+      }
+      code += '\n};\n';
+      document.getElementById('export-code-box').value = code;
+      navigator.clipboard.writeText(code);
+      alert('FastLED C++ header copied to clipboard!');
+    };
+
+    // PNG Downloads
+    document.getElementById('btn-quick-png').onclick = () => {
+      const c = document.createElement('canvas');
+      c.width = 12; c.height = 12;
+      const ctx = c.getContext('2d');
+      const grid = getCurrentGrid();
+      for (let y = 0; y < 12; y++) {
+        for (let x = 0; x < 12; x++) {
+          ctx.fillStyle = grid[y][x];
+          ctx.fillRect(x, y, 1, 1);
+        }
+      }
+      const a = document.createElement('a');
+      a.href = c.toDataURL();
+      a.download = 'wled_12x12.png';
+      a.click();
+    };
+
+    document.getElementById('btn-quick-glow-png').onclick = () => {
+      const c = document.createElement('canvas');
+      c.width = 1440; c.height = 840;
+      renderSimulation(c, c.getContext('2d'));
+      const a = document.createElement('a');
+      a.href = c.toDataURL();
+      a.download = 'wled_144x84mm_glow_render.png';
+      a.click();
+    };
+  </script>
 </body>
 </html>
