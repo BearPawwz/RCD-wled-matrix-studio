@@ -1,60 +1,56 @@
-# WLED Matrix Studio (12×12 Anamorphic Edition)
+# WLED Matrix Studio (Custom Dimensions & Anamorphic Edition)
 
-A responsive Web App & Android PWA for creating pixel art and converting images specifically for **12×12 WLED matrices** with a **144mm × 84mm** physical footprint.
+A responsive Web App & Android PWA for creating pixel art, multi-frame animations, and importing images for **WLED LED matrices** with customizable resolutions and non-square physical pitches.
 
 ---
 
-## 📐 Why Anamorphic Correction Matters for Your Matrix
+## 🎨 Signature Palette & Theme
 
-Your matrix is built with:
-- **Resolution:** 12 LEDs wide × 12 LEDs high (144 LEDs total).
-- **Physical Dimensions:** 144 mm wide × 84 mm high.
-- **Horizontal Pitch ($P_x$):** $144\text{ mm} / 12 = 12.0\text{ mm}$ between columns.
-- **Vertical Pitch ($P_y$):** $84\text{ mm} / 12 = 7.0\text{ mm}$ between rows (tightly spaced along 144 LED/m strip).
-- **Pixel Aspect Ratio (PAR):** $\frac{12.0\text{ mm}}{7.0\text{ mm}} \approx 1.714 : 1$.
+The studio is styled in a custom volcanic palette:
+- **Volcanic Sand Black** (`#0d0f11` / `#121518` / `#171b20`): Deep dark surfaces designed for high LED contrast.
+- **Signature Blue** (`#0088CA`): Primary brand color for active tools, highlights, frame selections, and network pushes.
+- **Light Olive** (`#A4B47C` / `#C2CF9E`): Accent color for dimension badges, aspect ratios, animation controls, and status indicators.
 
-In standard pixel art software (Aseprite, Photoshop, Piskel), every pixel is rendered as a 1:1 square. If you draw a circle on a 1:1 square grid, it will display on your physical matrix as a **flattened horizontal ellipse**!
+---
+
+## 📐 Why Anamorphic Correction Matters
+
+When LED strips are mounted with unequal column and row spacing (e.g. 12mm horizontal pitch × 7mm vertical pitch), standard pixel art software will stretch or distort circles and icons.
 
 **WLED Matrix Studio solves this directly:**
-1. **Physical Aspect Ratio Canvas:** Displays pixels with their real-world 1.714:1 rectangular pitch so what you see on screen matches reality.
-2. **Anamorphic Circle & Shape Tools:** Circle tools compensate for the 1.714 ratio so circles are physically round on the LEDs.
-3. **Anamorphic Image Importer:** Imports and pre-scales any photo, logo, or icon so it doesn't look stretched or squished when shown on your matrix.
-4. **Real-World LED Glow Simulator:** Renders realistic circular LEDs, dark PCB gaps, and optical light diffusion.
+1. **Physical LED View:** Displays pixels with their real-world rectangular pitch so on-screen art matches physical reality.
+2. **Anamorphic Circle & Shape Tools:** Circle and rectangle tools compensate for non-square ratios so shapes are physically round on the matrix.
+3. **Anamorphic Image Importer:** Pre-scales any photo, logo, or icon so it doesn't look squished when displayed.
+4. **Real-World LED Glow Simulator:** Renders realistic circular LEDs, dark PCB gaps, and ambient glow diffusion.
+5. **Dynamic Dimension Setup:** Easily switch between 12×12 (144×84mm), 16×16 (160×160mm), 8×8, 16×8, 32×8, or any custom LED count and millimeter size.
 
 ---
 
 ## 🚀 How to Run & Use
 
-### Option 1: Run in Any Browser (Desktop or Android)
-Simply open `index.html` in your browser (Chrome, Edge, Firefox, Brave, Safari).
-No installation, Node.js, or server build step is required!
+### Option 1: Run Locally (Desktop or Phone) — Recommended
+Simply double-click `index.html` to open it in Chrome, Edge, Firefox, or Safari.
+- Running locally via `file:///` allows your browser to connect directly to your local WLED IP address with zero HTTPS mixed-content blocks!
 
-### Option 2: Install as an App on Android (PWA)
-1. Open the web app URL (or serve it over local WiFi) in **Chrome for Android**.
-2. Tap the browser menu (`⋮`).
-3. Tap **"Install app"** or **"Add to Home screen"**.
-4. The app will launch in full-screen standalone mode with touch controls!
+### Option 2: Host on GitHub Pages
+1. Push `index.html`, `logo.png`, `manifest.json`, and `sw.js` to your GitHub repository.
+2. Go to **Settings &rarr; Pages** and select the `main` branch.
+3. Note: Because GitHub Pages uses HTTPS, browsers block direct HTTP calls to local IPs unless you allow "Insecure content" in Chrome site settings or use the built-in copy JSON preset feature.
 
 ---
 
 ## 📡 Connecting to WLED
 
-1. Ensure your phone/computer and WLED ESP32 are on the same local Wi-Fi network.
-2. Enter your WLED IP address (e.g. `192.168.1.120`) in the top right or sidebar.
-3. Click **Push** to send the current frame.
-4. Enable **"Auto-Push while drawing"** for real-time live interaction!
-
-> **Wiring Configuration:**
-> Open the Settings modal (⚙) to configure your matrix wiring:
-> - Strip direction: Vertical (12 strips of 12 LEDs) or Horizontal.
-> - Serpentine (zigzag) or parallel layout.
-> - First LED start corner (Top-Left, Bottom-Left, etc.).
+1. Enter your WLED IP address (e.g., `192.168.1.120`).
+2. Click **Test Connection** or **Push** to transmit art immediately.
+3. Enable **Auto-Push while drawing** for live updating.
+4. If an error occurs, click **Troubleshoot ℹ️** for guidance and one-click JSON preset copying.
 
 ---
 
 ## 💾 Export Formats
 
-- **12×12 Pixel PNG:** Lossless 1:1 pixel art PNG.
-- **144×84mm Glowing Render:** High-resolution 1440×840px mock render showing physical LEDs and ambient glow.
-- **WLED JSON Preset:** Ready to paste into WLED presets or send via curl.
-- **FastLED / Arduino C++ Header (.h):** `const uint32_t PROGMEM matrix_art_12x12[144]` array ready to flash to microcontrollers.
+- **Pixel PNG:** Lossless 1:1 pixel art PNG at current resolution.
+- **Glowing Render:** High-resolution mockup with realistic ambient glow.
+- **WLED JSON Preset:** Ready to paste into WLED presets or send via cURL.
+- **FastLED C++ Header (.h):** PROGMEM array formatted for Arduino/ESP32 firmware.

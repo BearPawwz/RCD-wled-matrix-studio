@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>WLED Matrix Studio — Custom & Anamorphic LED Art</title>
-  <meta name="description" content="Art studio & pixel converter for WLED matrices with customizable dimensions and non-square physical pitch compensation.">
-  <meta name="theme-color" content="#020617">
+  <meta name="description" content="Art studio & pixel converter for WLED matrices with customizable dimensions, volcanic sand theme, and non-square physical pitch compensation.">
+  <meta name="theme-color" content="#0d0f11">
   <link rel="manifest" href="manifest.json">
   
   <!-- Universal Tailwind CSS -->
@@ -15,8 +15,8 @@
   <style>
     * { box-sizing: border-box; }
     body {
-      background-color: #020617;
-      color: #f8fafc;
+      background-color: #0d0f11;
+      color: #f1f5f9;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       margin: 0;
       padding: 0;
@@ -32,10 +32,24 @@
       image-rendering: crisp-edges;
     }
 
+    .tool-btn {
+      background-color: transparent;
+      color: #94a3b8;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .tool-btn:hover {
+      background-color: #1e232a;
+      color: #f1f5f9;
+    }
+
     .tool-btn.active {
-      background-color: #4f46e5 !important;
+      background-color: #0088CA !important;
       color: #ffffff !important;
-      box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 14px rgba(0, 136, 202, 0.5) !important;
+      transform: scale(1.05);
     }
 
     .color-swatch {
@@ -48,15 +62,16 @@
     }
 
     .color-swatch:hover {
-      transform: scale(1.15);
+      transform: scale(1.18);
       z-index: 10;
+      box-shadow: 0 0 8px rgba(0, 136, 202, 0.4);
     }
 
     .frame-thumb {
       width: 48px;
       height: 48px;
       border-radius: 8px;
-      border: 2px solid #334155;
+      border: 2px solid #272f38;
       background: #000;
       cursor: pointer;
       flex-shrink: 0;
@@ -68,12 +83,12 @@
     }
 
     .frame-thumb:hover {
-      border-color: #64748b;
+      border-color: #475569;
     }
 
     .frame-thumb.active {
-      border-color: #6366f1;
-      box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+      border-color: #0088CA;
+      box-shadow: 0 0 10px rgba(0, 136, 202, 0.6);
     }
 
     .frame-thumb-badge {
@@ -82,8 +97,8 @@
       left: 3px;
       font-size: 9px;
       font-family: monospace;
-      color: rgba(255, 255, 255, 0.7);
-      background: rgba(0, 0, 0, 0.6);
+      color: rgba(255, 255, 255, 0.8);
+      background: rgba(0, 0, 0, 0.7);
       padding: 0 2px;
       border-radius: 2px;
     }
@@ -115,43 +130,64 @@
     }
 
     .modal-backdrop {
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(4px);
+      background: rgba(8, 10, 12, 0.88);
+      backdrop-filter: blur(5px);
+    }
+
+    /* Custom Volcanic Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0d0f11;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #272f38;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #0088CA;
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans select-none antialiased">
+<body class="bg-[#0d0f11] text-slate-100 min-h-screen flex flex-col font-sans select-none antialiased">
   
-  <!-- Header / Navigation -->
-  <header class="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-md">
+  <!-- Header / Navigation (Volcanic Sand Black with Signature Blue & Light Olive Accents) -->
+  <header class="bg-[#121518] border-b border-[#1f2429] px-4 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-md">
     <div class="flex items-center gap-3">
-      <div id="header-logo-badge" class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/25 cursor-pointer" title="Click to change panel dimensions">
-        LED
-      </div>
-      <div>
-        <div class="flex items-center gap-2">
-          <h1 class="font-bold text-base md:text-lg tracking-tight text-white">WLED Matrix Studio</h1>
-          <button id="header-badge-res" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30 cursor-pointer transition-colors" title="Click to change matrix resolution">12×12</button>
-          <button id="header-badge-mm" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/30 cursor-pointer transition-colors" title="Click to change physical dimensions">144×84 mm</button>
+      <!-- Bear Paw User Logo Container -->
+      <div id="header-logo-badge" class="flex items-center gap-2.5 cursor-pointer group" title="Click to adjust panel dimensions">
+        <div class="w-9 h-9 rounded-xl bg-[#171b20] border border-[#0088CA]/40 p-1 flex items-center justify-center shadow-md shadow-[#0088CA]/15 group-hover:border-[#0088CA] group-hover:shadow-[#0088CA]/30 transition-all">
+          <img id="app-logo-img" src="logo.png" alt="WLED Studio" class="w-full h-full object-contain filter drop-shadow">
         </div>
-        <p id="header-pitch-desc" class="text-[11px] text-slate-400 hidden xs:block">Pitch: <strong>12.0mm</strong> W × <strong>7.0mm</strong> H (1.714:1 PAR)</p>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-base md:text-lg tracking-tight text-white flex items-center gap-1.5">
+              WLED Matrix Studio
+            </h1>
+            <button id="header-badge-res" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#A4B47C]/15 text-[#C2CF9E] border border-[#A4B47C]/30 hover:bg-[#A4B47C]/25 cursor-pointer transition-colors" title="Click to change matrix resolution">12×12</button>
+            <button id="header-badge-mm" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#0088CA]/15 text-[#38bdf8] border border-[#0088CA]/30 hover:bg-[#0088CA]/25 cursor-pointer transition-colors" title="Click to change physical dimensions">144×84 mm</button>
+          </div>
+          <p id="header-pitch-desc" class="text-[11px] text-[#8492a6] hidden xs:block">Pitch: <strong>12.0mm</strong> W × <strong>7.0mm</strong> H (<span class="text-[#C2CF9E]">1.714:1 PAR</span>)</p>
+        </div>
       </div>
     </div>
 
     <!-- Quick Actions Header -->
     <div class="flex items-center gap-1.5 md:gap-2">
       <!-- Import Image Button -->
-      <button id="btn-open-import" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow transition-colors">
+      <button id="btn-open-import" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#171b20] hover:bg-[#1f2429] text-xs font-semibold text-slate-200 border border-[#272f38] transition-colors shadow-sm">
         <span>📷 Import</span>
       </button>
 
-      <!-- Export Button -->
-      <button id="btn-open-export" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow transition-colors">
+      <!-- Export Button (Signature Blue) -->
+      <button id="btn-open-export" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#0088CA] hover:bg-[#0073ab] text-xs font-semibold text-white shadow-md shadow-[#0088CA]/20 transition-all">
         <span>💾 Export</span>
       </button>
 
-      <!-- Settings Button -->
-      <button id="btn-open-settings" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-1.5" title="Panel Dimensions & Setup">
+      <!-- Setup Panel Button -->
+      <button id="btn-open-settings" class="px-2.5 py-1.5 rounded-lg bg-[#171b20] hover:bg-[#1f2429] text-slate-200 text-xs font-semibold border border-[#272f38] transition-colors flex items-center gap-1.5" title="Panel Dimensions & Setup">
         <span>⚙️ Setup Panel</span>
       </button>
     </div>
@@ -160,39 +196,39 @@
   <!-- Main Content Layout -->
   <main class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
     
-    <!-- LEFT TOOLBAR -->
-    <aside class="bg-slate-900 border-r border-slate-800 p-2.5 flex lg:flex-col gap-2 justify-between items-center z-20 overflow-x-auto lg:overflow-x-visible">
+    <!-- LEFT TOOLBAR (Volcanic Sand Black) -->
+    <aside class="bg-[#121518] border-r border-[#1f2429] p-2.5 flex lg:flex-col gap-2 justify-between items-center z-20 overflow-x-auto lg:overflow-x-visible">
       
       <!-- Primary Drawing Tools -->
       <div class="flex lg:flex-col gap-1.5 items-center">
-        <button data-tool="pencil" class="tool-btn active p-2 rounded-lg bg-indigo-600 text-white transition-all text-xs font-bold" title="Pencil (Draw)">✏️</button>
-        <button data-tool="line" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Line Tool">📏</button>
-        <button data-tool="rect" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Rectangle">◻️</button>
-        <button data-tool="circle" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold relative" title="Circle (Anamorphically round in physical space)">
+        <button data-tool="pencil" class="tool-btn active p-2 rounded-lg text-xs font-bold" title="Pencil (Draw)">✏️</button>
+        <button data-tool="line" class="tool-btn p-2 rounded-lg text-xs font-bold" title="Line Tool">📏</button>
+        <button data-tool="rect" class="tool-btn p-2 rounded-lg text-xs font-bold" title="Rectangle">◻️</button>
+        <button data-tool="circle" class="tool-btn p-2 rounded-lg text-xs font-bold relative" title="Circle (Anamorphically round in physical space)">
           ⭕
-          <span class="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          <span class="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-[#A4B47C]"></span>
         </button>
-        <button data-tool="fill" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Flood Fill">🪣</button>
-        <button data-tool="picker" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Color Picker (Eyedropper)">💉</button>
-        <button data-tool="eraser" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Eraser (Turn LED Off)">🧹</button>
+        <button data-tool="fill" class="tool-btn p-2 rounded-lg text-xs font-bold" title="Flood Fill">🪣</button>
+        <button data-tool="picker" class="tool-btn p-2 rounded-lg text-xs font-bold" title="Color Picker (Eyedropper)">💉</button>
+        <button data-tool="eraser" class="tool-btn p-2 rounded-lg text-xs font-bold" title="Eraser (Turn LED Off)">🧹</button>
       </div>
 
       <!-- Action Utilities -->
       <div class="flex lg:flex-col gap-1.5 items-center">
-        <button id="btn-undo" class="p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-colors text-xs font-bold" title="Undo (Ctrl+Z)">↩</button>
-        <button id="btn-redo" class="p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-colors text-xs font-bold" title="Redo (Ctrl+Y)">↪</button>
-        <button id="btn-clear" class="p-2 rounded-lg text-rose-400 hover:bg-rose-500/10 transition-colors text-xs font-bold" title="Clear Canvas">🗑️</button>
+        <button id="btn-undo" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e232a] transition-colors text-xs font-bold" title="Undo (Ctrl+Z)">↩</button>
+        <button id="btn-redo" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#1e232a] transition-colors text-xs font-bold" title="Redo (Ctrl+Y)">↪</button>
+        <button id="btn-clear" class="p-2 rounded-lg text-rose-400 hover:bg-rose-500/15 transition-colors text-xs font-bold" title="Clear Canvas">🗑️</button>
       </div>
     </aside>
 
     <!-- CENTER CANVAS WORKSPACE -->
-    <section class="flex-1 flex flex-col overflow-hidden bg-slate-950 p-2 sm:p-4">
+    <section class="flex-1 flex flex-col overflow-hidden bg-[#090a0c] p-2 sm:p-4">
       
       <!-- Top Canvas Controls Bar -->
-      <div class="flex flex-wrap items-center justify-between gap-2 mb-3 bg-slate-900/80 p-2 rounded-xl border border-slate-800">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3 bg-[#121518] p-2 rounded-xl border border-[#1f2429]">
         <!-- View Mode Switcher -->
-        <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs font-medium">
-          <button id="mode-physical" class="px-2.5 py-1 rounded-md bg-indigo-600 text-white shadow transition-all">
+        <div class="flex items-center gap-1 bg-[#0d0f11] p-1 rounded-lg border border-[#1f2429] text-xs font-medium">
+          <button id="mode-physical" class="px-2.5 py-1 rounded-md bg-[#0088CA] text-white shadow transition-all">
             Physical LED View
           </button>
           <button id="mode-square" class="px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition-all">
@@ -202,37 +238,37 @@
 
         <!-- Shift & Transform buttons -->
         <div class="flex items-center gap-1 text-xs">
-          <span class="text-[11px] text-slate-400 mr-1 hidden sm:inline">Shift:</span>
-          <button id="shift-up" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 px-2" title="Shift Up">↑</button>
-          <button id="shift-down" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 px-2" title="Shift Down">↓</button>
-          <button id="shift-left" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 px-2" title="Shift Left">←</button>
-          <button id="shift-right" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 px-2" title="Shift Right">→</button>
-          <button id="btn-flip-h" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 px-1.5" title="Flip Horizontal">⇄</button>
-          <button id="btn-flip-v" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 px-1.5" title="Flip Vertical">⇅</button>
+          <span class="text-[11px] text-[#8492a6] mr-1 hidden sm:inline">Shift:</span>
+          <button id="shift-up" class="p-1 rounded bg-[#171b20] hover:bg-[#1f2429] text-slate-300 px-2 border border-[#272f38]" title="Shift Up">↑</button>
+          <button id="shift-down" class="p-1 rounded bg-[#171b20] hover:bg-[#1f2429] text-slate-300 px-2 border border-[#272f38]" title="Shift Down">↓</button>
+          <button id="shift-left" class="p-1 rounded bg-[#171b20] hover:bg-[#1f2429] text-slate-300 px-2 border border-[#272f38]" title="Shift Left">←</button>
+          <button id="shift-right" class="p-1 rounded bg-[#171b20] hover:bg-[#1f2429] text-slate-300 px-2 border border-[#272f38]" title="Shift Right">→</button>
+          <button id="btn-flip-h" class="p-1 rounded bg-[#171b20] hover:bg-[#1f2429] text-slate-300 px-1.5 border border-[#272f38]" title="Flip Horizontal">⇄</button>
+          <button id="btn-flip-v" class="p-1 rounded bg-[#171b20] hover:bg-[#1f2429] text-slate-300 px-1.5 border border-[#272f38]" title="Flip Vertical">⇅</button>
         </div>
 
-        <!-- Pitch badge -->
-        <div id="canvas-pitch-pill" class="flex items-center gap-1 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg cursor-pointer hover:bg-amber-500/20 transition-colors" title="Click to adjust panel dimensions">
-          <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+        <!-- Pitch badge (Light Olive Accent) -->
+        <div id="canvas-pitch-pill" class="flex items-center gap-1.5 text-xs text-[#C2CF9E] bg-[#A4B47C]/15 border border-[#A4B47C]/30 px-2.5 py-1 rounded-lg cursor-pointer hover:bg-[#A4B47C]/25 transition-colors" title="Click to adjust panel dimensions">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#A4B47C]"></span>
           <span id="canvas-pitch-text">Pitch: <strong>12.0mm</strong> × <strong>7.0mm</strong> (1.714:1)</span>
         </div>
       </div>
 
       <!-- Main Canvas Container -->
-      <div class="flex-1 flex items-center justify-center relative overflow-hidden bg-slate-900/30 rounded-2xl border border-slate-800/80 p-2 sm:p-6 shadow-inner">
+      <div class="flex-1 flex items-center justify-center relative overflow-hidden bg-[#0d0f11]/60 rounded-2xl border border-[#1f2429] p-2 sm:p-6 shadow-inner">
         
         <!-- Interactive Drawing Canvas -->
-        <div id="canvas-wrapper" class="relative shadow-2xl rounded-xl overflow-hidden bg-black border-2 border-slate-800 flex items-center justify-center">
+        <div id="canvas-wrapper" class="relative shadow-2xl rounded-xl overflow-hidden bg-black border-2 border-[#1f2429] flex items-center justify-center">
           <canvas id="paint-canvas" width="432" height="252" class="cursor-crosshair touch-none"></canvas>
         </div>
 
         <!-- Live Picture-In-Picture LED Glow Simulator -->
-        <div id="pip-container" class="absolute bottom-4 right-4 bg-slate-900/90 backdrop-blur-md p-2 rounded-xl border border-slate-700 shadow-xl flex flex-col gap-1 z-10 max-w-[190px]">
+        <div id="pip-container" class="absolute bottom-4 right-4 bg-[#121518]/95 backdrop-blur-md p-2 rounded-xl border border-[#272f38] shadow-2xl flex flex-col gap-1 z-10 max-w-[190px]">
           <div class="flex items-center justify-between text-[10px] text-slate-400 font-medium px-1">
             <span>REAL-WORLD LED GLOW</span>
-            <span id="sim-aspect-badge" class="text-emerald-400 font-mono">1.714:1</span>
+            <span id="sim-aspect-badge" class="text-[#C2CF9E] font-mono font-bold">1.714:1</span>
           </div>
-          <div class="w-full flex items-center justify-center bg-black/90 rounded-lg p-1 border border-slate-800 overflow-hidden">
+          <div class="w-full flex items-center justify-center bg-black rounded-lg p-1 border border-[#1f2429] overflow-hidden">
             <canvas id="sim-canvas" width="168" height="98" class="rounded shadow"></canvas>
           </div>
         </div>
@@ -240,7 +276,7 @@
       </div>
 
       <!-- Animation / Frames bar -->
-      <div class="mt-3 bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between gap-3 shadow-md">
+      <div class="mt-3 bg-[#121518] p-2.5 rounded-xl border border-[#1f2429] flex flex-wrap items-center justify-between gap-3 shadow-md">
         
         <!-- Left: Frame Thumbnails Strip -->
         <div class="flex items-center gap-2 overflow-x-auto py-1 flex-1 min-w-[180px]" id="frames-strip">
@@ -250,63 +286,75 @@
         <!-- Right: Frame Controls -->
         <div class="flex items-center gap-1.5 shrink-0 flex-wrap">
           <!-- Frame position counter -->
-          <span id="frame-counter" class="text-xs font-mono font-bold text-indigo-300 px-2 py-1 bg-slate-950 rounded-lg border border-slate-800" title="Current frame / Total frames">
+          <span id="frame-counter" class="text-xs font-mono font-bold text-[#38bdf8] px-2 py-1 bg-[#0d0f11] rounded-lg border border-[#1f2429]" title="Current frame / Total frames">
             1 / 1
           </span>
 
           <!-- Reorder buttons -->
-          <div class="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800">
-            <button id="btn-move-frame-left" class="p-1 rounded hover:bg-slate-800 text-slate-300 text-xs px-1.5" title="Move frame earlier in sequence">◀</button>
-            <button id="btn-move-frame-right" class="p-1 rounded hover:bg-slate-800 text-slate-300 text-xs px-1.5" title="Move frame later in sequence">▶</button>
+          <div class="flex items-center bg-[#0d0f11] p-0.5 rounded-lg border border-[#1f2429]">
+            <button id="btn-move-frame-left" class="p-1 rounded hover:bg-[#1e232a] text-slate-300 text-xs px-1.5" title="Move frame earlier in sequence">◀</button>
+            <button id="btn-move-frame-right" class="p-1 rounded hover:bg-[#1e232a] text-slate-300 text-xs px-1.5" title="Move frame later in sequence">▶</button>
           </div>
 
           <!-- Add / Insert frame buttons -->
-          <button id="btn-add-frame" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow transition-all flex items-center gap-1" title="Insert a copy of the current frame right next to it">
+          <button id="btn-add-frame" class="px-2.5 py-1 rounded-lg bg-[#0088CA] hover:bg-[#0073ab] text-xs font-semibold text-white shadow transition-all flex items-center gap-1" title="Insert a copy of the current frame right next to it">
             <span>+ Copy Next</span>
           </button>
-          <button id="btn-add-blank-frame" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700 transition-colors" title="Insert a blank frame right next to the current frame">
+          <button id="btn-add-blank-frame" class="px-2.5 py-1 rounded-lg bg-[#171b20] hover:bg-[#1f2429] text-xs text-slate-300 border border-[#272f38] transition-colors" title="Insert a blank frame right next to the current frame">
             + Blank Next
           </button>
 
           <!-- Delete frame button -->
-          <button id="btn-delete-frame" class="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-xs text-rose-300 font-semibold border border-rose-500/30 transition-colors flex items-center gap-1" title="Delete current frame">
+          <button id="btn-delete-frame" class="px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-xs text-rose-300 font-semibold border border-rose-500/30 transition-colors flex items-center gap-1" title="Delete current frame">
             <span>🗑️ Delete</span>
           </button>
 
           <!-- Divider -->
-          <div class="h-4 w-px bg-slate-800 mx-0.5 hidden sm:block"></div>
+          <div class="h-4 w-px bg-[#1f2429] mx-0.5 hidden sm:block"></div>
 
-          <!-- Play / FPS controls -->
-          <button id="btn-play-anim" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow transition-all flex items-center gap-1">
+          <!-- Play / FPS controls (Light Olive Play Button) -->
+          <button id="btn-play-anim" class="px-2.5 py-1 rounded-lg bg-[#A4B47C] hover:bg-[#93a26d] text-xs font-bold text-[#0d0f11] shadow transition-all flex items-center gap-1">
             <span id="play-text">▶ Play</span>
           </button>
-          <input type="range" id="anim-fps" min="1" max="15" value="4" class="w-16 accent-indigo-500" title="Animation FPS">
+          <input type="range" id="anim-fps" min="1" max="15" value="4" class="w-16 accent-[#0088CA]" title="Animation FPS">
           <span id="fps-label" class="text-[11px] font-mono text-slate-400">4 fps</span>
         </div>
       </div>
 
     </section>
 
-    <!-- RIGHT COLOR & WLED PANEL -->
-    <aside class="w-full lg:w-80 bg-slate-900 border-l border-slate-800 p-3 sm:p-4 flex flex-col gap-4 overflow-y-auto">
+    <!-- RIGHT COLOR & WLED PANEL (Volcanic Sand Black) -->
+    <aside class="w-full lg:w-80 bg-[#121518] border-l border-[#1f2429] p-3 sm:p-4 flex flex-col gap-4 overflow-y-auto">
       
       <!-- Color Picker Section -->
-      <div class="bg-slate-950/70 p-3 rounded-xl border border-slate-800/80 flex flex-col gap-3">
+      <div class="bg-[#171b20] p-3 rounded-xl border border-[#222830] flex flex-col gap-3">
         <div class="flex items-center justify-between">
           <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Color</h2>
           <div class="flex items-center gap-2">
-            <span id="hex-label" class="font-mono text-xs text-slate-300 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">#FF0055</span>
-            <div id="current-color-preview" class="w-5 h-5 rounded-md border border-white/30 shadow" style="background-color: #FF0055;"></div>
+            <span id="hex-label" class="font-mono text-xs text-slate-200 bg-[#0d0f11] px-2 py-0.5 rounded border border-[#272f38]">#0088CA</span>
+            <div id="current-color-preview" class="w-5 h-5 rounded-md border border-white/30 shadow" style="background-color: #0088CA;"></div>
           </div>
         </div>
 
         <div class="flex items-center gap-2">
-          <input type="color" id="native-color" value="#FF0055" class="w-10 h-9 rounded cursor-pointer bg-transparent border-0 p-0">
-          <input type="text" id="hex-input" value="#FF0055" maxlength="7" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-indigo-500 uppercase">
+          <input type="color" id="native-color" value="#0088CA" class="w-10 h-9 rounded cursor-pointer bg-transparent border-0 p-0">
+          <input type="text" id="hex-input" value="#0088CA" maxlength="7" class="flex-1 bg-[#0d0f11] border border-[#272f38] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-[#0088CA] uppercase">
         </div>
 
+        <!-- Signature Brand Palette -->
         <div>
-          <span class="text-[11px] text-slate-400 block mb-1.5 font-medium">Quick LED Swatches</span>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] text-[#38bdf8] font-semibold flex items-center gap-1">
+              <span>★</span> Your Colors
+            </span>
+            <span class="text-[10px] text-[#8492a6]">Blue • Olive • Volcanic</span>
+          </div>
+          <div class="grid grid-cols-6 gap-1.5" id="signature-colors"></div>
+        </div>
+
+        <!-- Full Standard Swatches -->
+        <div>
+          <span class="text-[11px] text-slate-400 block mb-1.5 font-medium">Standard LED Swatches</span>
           <div class="grid grid-cols-6 gap-1.5" id="preset-colors"></div>
         </div>
 
@@ -317,47 +365,47 @@
       </div>
 
       <!-- Live WLED Quick Sync Box -->
-      <div class="bg-slate-950/70 p-3 rounded-xl border border-slate-800/80 flex flex-col gap-2.5">
+      <div class="bg-[#171b20] p-3 rounded-xl border border-[#222830] flex flex-col gap-2.5">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-1.5">
             <span id="wled-dot-status" class="w-2 h-2 rounded-full bg-slate-600"></span>
             <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">WLED Link</h2>
           </div>
-          <span id="wled-pill-status" class="text-[10px] px-2 py-0.5 rounded font-mono bg-slate-800 text-slate-400">Ready</span>
+          <span id="wled-pill-status" class="text-[10px] px-2 py-0.5 rounded font-mono bg-[#0d0f11] text-slate-400 border border-[#272f38]">Ready</span>
         </div>
 
         <div class="flex flex-col gap-1.5">
           <div class="flex gap-1.5">
-            <input type="text" id="wled-ip-input" placeholder="e.g. 192.168.1.120" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-indigo-500">
-            <button id="btn-sync-wled" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow transition-all flex items-center gap-1" title="Push frame to WLED">
+            <input type="text" id="wled-ip-input" placeholder="e.g. 192.168.1.120" class="flex-1 bg-[#0d0f11] border border-[#272f38] rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-[#0088CA]">
+            <button id="btn-sync-wled" class="px-3 py-1.5 rounded-lg bg-[#0088CA] hover:bg-[#0073ab] text-xs font-bold text-white shadow-md shadow-[#0088CA]/20 transition-all flex items-center gap-1" title="Push frame to WLED">
               Push
             </button>
           </div>
           <div class="flex items-center justify-between text-xs px-0.5">
-            <button id="btn-ping-wled" class="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium transition-colors flex items-center gap-1">
+            <button id="btn-ping-wled" class="text-[11px] text-[#38bdf8] hover:underline font-medium transition-colors flex items-center gap-1">
               <span>🔍 Test Connection</span>
             </button>
-            <button id="btn-wled-diag" class="text-[11px] text-slate-400 hover:text-slate-200 transition-colors">
+            <button id="btn-wled-diag" class="text-[11px] text-[#8492a6] hover:text-slate-200 transition-colors">
               Troubleshoot ℹ️
             </button>
           </div>
         </div>
 
-        <div id="wled-info-banner" class="hidden text-[11px] bg-slate-900 p-2 rounded-lg border border-slate-800 text-slate-300 leading-snug"></div>
+        <div id="wled-info-banner" class="hidden text-[11px] bg-[#0d0f11] p-2 rounded-lg border border-[#272f38] text-slate-300 leading-snug"></div>
 
         <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 pt-1">
-          <input type="checkbox" id="wled-auto-sync" class="rounded bg-slate-800 border-slate-700 text-indigo-600">
+          <input type="checkbox" id="wled-auto-sync" class="rounded bg-[#0d0f11] border-[#272f38] text-[#0088CA] focus:ring-0">
           <span>Auto-Push while drawing</span>
         </label>
       </div>
 
       <!-- Quick Export Actions -->
       <div class="flex flex-col gap-2">
-        <button id="btn-quick-png" class="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 flex items-center justify-center gap-2">
+        <button id="btn-quick-png" class="w-full py-2 px-3 rounded-xl bg-[#171b20] hover:bg-[#1f2429] border border-[#272f38] text-xs font-medium text-slate-200 flex items-center justify-center gap-2 transition-colors">
           <span>Download Pixel PNG</span>
         </button>
 
-        <button id="btn-quick-glow-png" class="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 flex items-center justify-center gap-2">
+        <button id="btn-quick-glow-png" class="w-full py-2 px-3 rounded-xl bg-[#171b20] hover:bg-[#1f2429] border border-[#272f38] text-xs font-medium text-slate-200 flex items-center justify-center gap-2 transition-colors">
           <span>Download Glowing Render</span>
         </button>
       </div>
@@ -368,10 +416,10 @@
 
   <!-- MODAL: PANEL SETUP & DIMENSIONS -->
   <div id="modal-settings" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-5 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+    <div class="bg-[#121518] border border-[#272f38] rounded-2xl max-w-lg w-full p-5 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-[#1f2429] pb-3">
         <div class="flex items-center gap-2">
-          <span class="text-indigo-400 text-lg">⚙️</span>
+          <span class="text-[#38bdf8] text-lg">⚙️</span>
           <h3 class="font-bold text-base text-white">Panel Dimensions & Setup</h3>
         </div>
         <button class="modal-close text-slate-400 hover:text-white text-lg font-bold">&times;</button>
@@ -381,27 +429,27 @@
       <div>
         <label class="font-semibold text-slate-300 text-xs block mb-1.5">Quick Presets</label>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs">
-          <button type="button" class="preset-btn p-2 rounded-lg bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-600/50 text-left font-medium transition-colors" data-w="12" data-h="12" data-wmm="144" data-hmm="84">
+          <button type="button" class="preset-btn p-2 rounded-lg bg-[#0088CA]/20 text-[#38bdf8] border border-[#0088CA]/40 hover:bg-[#0088CA]/30 text-left font-medium transition-colors" data-w="12" data-h="12" data-wmm="144" data-hmm="84">
             <div class="font-bold">12×12 (144×84mm)</div>
-            <div class="text-[10px] text-slate-400">Your Custom Panel</div>
+            <div class="text-[10px] text-[#C2CF9E]">Your Custom Panel</div>
           </button>
-          <button type="button" class="preset-btn p-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 text-left font-medium transition-colors" data-w="16" data-h="16" data-wmm="160" data-hmm="160">
+          <button type="button" class="preset-btn p-2 rounded-lg bg-[#171b20] text-slate-300 border border-[#272f38] hover:bg-[#1f2429] text-left font-medium transition-colors" data-w="16" data-h="16" data-wmm="160" data-hmm="160">
             <div class="font-bold">16×16 (160×160mm)</div>
             <div class="text-[10px] text-slate-400">Standard Square</div>
           </button>
-          <button type="button" class="preset-btn p-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 text-left font-medium transition-colors" data-w="8" data-h="8" data-wmm="80" data-hmm="80">
+          <button type="button" class="preset-btn p-2 rounded-lg bg-[#171b20] text-slate-300 border border-[#272f38] hover:bg-[#1f2429] text-left font-medium transition-colors" data-w="8" data-h="8" data-wmm="80" data-hmm="80">
             <div class="font-bold">8×8 (80×80mm)</div>
             <div class="text-[10px] text-slate-400">Mini Matrix</div>
           </button>
-          <button type="button" class="preset-btn p-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 text-left font-medium transition-colors" data-w="16" data-h="8" data-wmm="160" data-hmm="80">
+          <button type="button" class="preset-btn p-2 rounded-lg bg-[#171b20] text-slate-300 border border-[#272f38] hover:bg-[#1f2429] text-left font-medium transition-colors" data-w="16" data-h="8" data-wmm="160" data-hmm="80">
             <div class="font-bold">16×8 (160×80mm)</div>
             <div class="text-[10px] text-slate-400">Rectangle 2:1</div>
           </button>
-          <button type="button" class="preset-btn p-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 text-left font-medium transition-colors" data-w="32" data-h="8" data-wmm="320" data-hmm="80">
+          <button type="button" class="preset-btn p-2 rounded-lg bg-[#171b20] text-slate-300 border border-[#272f38] hover:bg-[#1f2429] text-left font-medium transition-colors" data-w="32" data-h="8" data-wmm="320" data-hmm="80">
             <div class="font-bold">32×8 (320×80mm)</div>
             <div class="text-[10px] text-slate-400">Wide Banner</div>
           </button>
-          <button type="button" class="preset-btn p-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 text-left font-medium transition-colors" data-w="32" data-h="32" data-wmm="192" data-hmm="192">
+          <button type="button" class="preset-btn p-2 rounded-lg bg-[#171b20] text-slate-300 border border-[#272f38] hover:bg-[#1f2429] text-left font-medium transition-colors" data-w="32" data-h="32" data-wmm="192" data-hmm="192">
             <div class="font-bold">32×32 (192×192mm)</div>
             <div class="text-[10px] text-slate-400">1024 LEDs High-Res</div>
           </button>
@@ -415,11 +463,11 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <span class="text-[11px] text-slate-400 block mb-0.5">Columns (Width in LEDs)</span>
-              <input type="number" id="setting-width-leds" value="12" min="1" max="128" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-mono focus:outline-none focus:border-indigo-500">
+              <input type="number" id="setting-width-leds" value="12" min="1" max="128" class="w-full bg-[#0d0f11] border border-[#272f38] rounded-lg p-2 text-white font-mono focus:outline-none focus:border-[#0088CA]">
             </div>
             <div>
               <span class="text-[11px] text-slate-400 block mb-0.5">Rows (Height in LEDs)</span>
-              <input type="number" id="setting-height-leds" value="12" min="1" max="128" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-mono focus:outline-none focus:border-indigo-500">
+              <input type="number" id="setting-height-leds" value="12" min="1" max="128" class="w-full bg-[#0d0f11] border border-[#272f38] rounded-lg p-2 text-white font-mono focus:outline-none focus:border-[#0088CA]">
             </div>
           </div>
         </div>
@@ -430,20 +478,20 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <span class="text-[11px] text-slate-400 block mb-0.5">Physical Width (mm)</span>
-              <input type="number" id="setting-width-mm" value="144" min="1" max="5000" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-mono focus:outline-none focus:border-indigo-500">
+              <input type="number" id="setting-width-mm" value="144" min="1" max="5000" class="w-full bg-[#0d0f11] border border-[#272f38] rounded-lg p-2 text-white font-mono focus:outline-none focus:border-[#0088CA]">
             </div>
             <div>
               <span class="text-[11px] text-slate-400 block mb-0.5">Physical Height (mm)</span>
-              <input type="number" id="setting-height-mm" value="84" min="1" max="5000" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-mono focus:outline-none focus:border-indigo-500">
+              <input type="number" id="setting-height-mm" value="84" min="1" max="5000" class="w-full bg-[#0d0f11] border border-[#272f38] rounded-lg p-2 text-white font-mono focus:outline-none focus:border-[#0088CA]">
             </div>
           </div>
         </div>
 
-        <!-- Live Geometry calculation box -->
-        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex flex-col gap-1 text-[11px]">
+        <!-- Live Geometry calculation box (Light Olive Accents) -->
+        <div class="bg-[#0d0f11] p-2.5 rounded-xl border border-[#1f2429] flex flex-col gap-1 text-[11px]">
           <div class="flex justify-between">
             <span class="text-slate-400">Total LEDs:</span>
-            <span id="geo-total-leds" class="font-mono text-emerald-400 font-bold">144 LEDs</span>
+            <span id="geo-total-leds" class="font-mono text-[#C2CF9E] font-bold">144 LEDs</span>
           </div>
           <div class="flex justify-between">
             <span class="text-slate-400">Horizontal Pitch:</span>
@@ -455,7 +503,7 @@
           </div>
           <div class="flex justify-between">
             <span class="text-slate-400">Pixel Aspect Ratio (PAR):</span>
-            <span id="geo-par" class="font-mono text-amber-300 font-bold">1.714 : 1 (Rectangular / Wide)</span>
+            <span id="geo-par" class="font-mono text-[#38bdf8] font-bold">1.714 : 1 (Rectangular / Wide)</span>
           </div>
         </div>
 
@@ -464,11 +512,11 @@
           <label class="font-semibold text-slate-300 block mb-1">When Changing Resolution:</label>
           <div class="flex gap-4">
             <label class="flex items-center gap-1.5 text-slate-300 cursor-pointer">
-              <input type="radio" name="resize-behavior" value="crop" checked class="text-indigo-600 bg-slate-800 border-slate-700">
+              <input type="radio" name="resize-behavior" value="crop" checked class="text-[#0088CA] bg-[#0d0f11] border-[#272f38]">
               <span>Preserve & crop/expand art</span>
             </label>
             <label class="flex items-center gap-1.5 text-slate-300 cursor-pointer">
-              <input type="radio" name="resize-behavior" value="clear" class="text-indigo-600 bg-slate-800 border-slate-700">
+              <input type="radio" name="resize-behavior" value="clear" class="text-[#0088CA] bg-[#0d0f11] border-[#272f38]">
               <span>Clear to black</span>
             </label>
           </div>
@@ -477,7 +525,7 @@
         <!-- Wiring Configuration -->
         <div>
           <label class="font-semibold text-slate-300 block mb-1">Strip Wiring Direction</label>
-          <select id="setting-wiring-dir" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white">
+          <select id="setting-wiring-dir" class="w-full bg-[#0d0f11] border border-[#272f38] rounded-lg p-2 text-white">
             <option value="vertical" selected>Vertical Strips (strips along height)</option>
             <option value="horizontal">Horizontal Strips (strips along width)</option>
           </select>
@@ -486,14 +534,14 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="font-semibold text-slate-300 block mb-1">Layout</label>
-            <select id="setting-serpentine" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white">
+            <select id="setting-serpentine" class="w-full bg-[#0d0f11] border border-[#272f38] rounded-lg p-2 text-white">
               <option value="true" selected>Serpentine (Zig-zag)</option>
               <option value="false">Non-Serpentine (Parallel)</option>
             </select>
           </div>
           <div>
             <label class="font-semibold text-slate-300 block mb-1">First LED Corner</label>
-            <select id="setting-start-corner" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white">
+            <select id="setting-start-corner" class="w-full bg-[#0d0f11] border border-[#272f38] rounded-lg p-2 text-white">
               <option value="top-left" selected>Top-Left</option>
               <option value="bottom-left">Bottom-Left</option>
               <option value="top-right">Top-Right</option>
@@ -503,17 +551,17 @@
         </div>
       </div>
 
-      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-        <button class="modal-close px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">Cancel</button>
-        <button id="btn-apply-settings" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow">Apply & Resize Panel</button>
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-[#1f2429]">
+        <button class="modal-close px-4 py-2 rounded-lg bg-[#171b20] hover:bg-[#1f2429] text-xs font-semibold text-slate-300 border border-[#272f38]">Cancel</button>
+        <button id="btn-apply-settings" class="px-4 py-2 rounded-lg bg-[#0088CA] hover:bg-[#0073ab] text-xs font-semibold text-white shadow-md shadow-[#0088CA]/20">Apply & Resize Panel</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: WLED TROUBLESHOOTER & DIAGNOSTICS -->
   <div id="modal-wled-diag" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-5 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+    <div class="bg-[#121518] border border-[#272f38] rounded-2xl max-w-lg w-full p-5 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-[#1f2429] pb-3">
         <div class="flex items-center gap-2">
           <span class="text-amber-400 text-lg">⚠️</span>
           <h3 class="font-bold text-base text-white">WLED Connection Troubleshooter</h3>
@@ -540,60 +588,60 @@
           <div class="mt-2.5 flex flex-col gap-1.5 text-[11px]">
             <div class="font-semibold text-white">How to fix it:</div>
             <div class="flex items-start gap-1.5">
-              <span class="text-emerald-400 font-bold">1.</span>
+              <span class="text-[#C2CF9E] font-bold">1.</span>
               <span><strong>Run Locally (Easiest & Best):</strong> Open <code class="font-mono bg-black/40 px-1 rounded">index.html</code> directly on your PC by double-clicking it. When opened as a local file (<code class="font-mono">file:///...</code>), Chrome permits local network access with zero blocks!</span>
             </div>
             <div class="flex items-start gap-1.5">
-              <span class="text-emerald-400 font-bold">2.</span>
-              <span><strong>On Chrome (Android or Desktop):</strong> Click the <em>Tune / Lock icon</em> next to the URL bar $\rightarrow$ <em>Site settings</em> $\rightarrow$ find <em>"Insecure content"</em> $\rightarrow$ change from Block to <strong>Allow</strong>.</span>
+              <span class="text-[#C2CF9E] font-bold">2.</span>
+              <span><strong>On Chrome (Android or Desktop):</strong> Click the <em>Tune / Lock icon</em> next to the URL bar &rarr; <em>Site settings</em> &rarr; find <em>"Insecure content"</em> &rarr; change from Block to <strong>Allow</strong>.</span>
             </div>
           </div>
         </div>
 
-        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+        <div class="bg-[#0d0f11] p-3 rounded-xl border border-[#1f2429] space-y-2">
           <div class="font-bold text-white text-xs">Verify WLED Manually:</div>
           <div class="flex gap-2">
-            <button id="btn-diag-open-wled" class="flex-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700">
+            <button id="btn-diag-open-wled" class="flex-1 px-3 py-1.5 rounded-lg bg-[#171b20] hover:bg-[#1f2429] text-slate-200 text-xs font-medium border border-[#272f38]">
               Open WLED in New Tab ↗
             </button>
-            <button id="btn-diag-copy-curl" class="flex-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700">
+            <button id="btn-diag-copy-curl" class="flex-1 px-3 py-1.5 rounded-lg bg-[#171b20] hover:bg-[#1f2429] text-slate-200 text-xs font-medium border border-[#272f38]">
               Copy cURL Test Command 📋
             </button>
           </div>
-          <button id="btn-diag-copy-preset" class="w-full px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow">
+          <button id="btn-diag-copy-preset" class="w-full px-3 py-1.5 rounded-lg bg-[#0088CA] hover:bg-[#0073ab] text-white text-xs font-bold shadow">
             Copy WLED JSON Preset (Paste directly into WLED)
           </button>
         </div>
       </div>
 
-      <div class="flex justify-end pt-2 border-t border-slate-800">
-        <button class="modal-close px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">Close</button>
+      <div class="flex justify-end pt-2 border-t border-[#1f2429]">
+        <button class="modal-close px-4 py-2 rounded-lg bg-[#171b20] hover:bg-[#1f2429] text-xs font-semibold text-slate-300 border border-[#272f38]">Close</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: IMAGE IMPORTER -->
   <div id="modal-import" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-5 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+    <div class="bg-[#121518] border border-[#272f38] rounded-2xl max-w-lg w-full p-5 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-[#1f2429] pb-3">
         <h3 class="font-bold text-base text-white">Anamorphic Image Converter</h3>
         <button class="modal-close text-slate-400 hover:text-white text-lg font-bold">&times;</button>
       </div>
 
-      <div id="import-dropzone" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-4 text-center cursor-pointer bg-slate-950/40">
+      <div id="import-dropzone" class="border-2 border-dashed border-[#272f38] hover:border-[#0088CA] rounded-xl p-4 text-center cursor-pointer bg-[#0d0f11]/60 transition-colors">
         <input type="file" id="import-file-input" accept="image/*" class="hidden">
         <p class="text-xs text-slate-300 font-medium">Click to choose image or drag & drop</p>
-        <span class="text-[11px] text-slate-500">PNG, JPG, SVG, WebP</span>
+        <span class="text-[11px] text-[#8492a6]">PNG, JPG, SVG, WebP</span>
       </div>
 
-      <div class="grid grid-cols-2 gap-3 items-center bg-slate-950 p-3 rounded-xl border border-slate-800">
+      <div class="grid grid-cols-2 gap-3 items-center bg-[#0d0f11] p-3 rounded-xl border border-[#1f2429]">
         <div class="flex flex-col items-center">
           <span id="import-grid-title" class="text-[11px] font-semibold text-slate-400 mb-1">Matrix Grid</span>
-          <canvas id="import-matrix-preview" width="12" height="12" class="w-24 h-24 image-pixelated bg-black border border-slate-700 rounded"></canvas>
+          <canvas id="import-matrix-preview" width="12" height="12" class="w-24 h-24 image-pixelated bg-black border border-[#272f38] rounded"></canvas>
         </div>
         <div class="flex flex-col items-center">
-          <span id="import-phys-title" class="text-[11px] font-semibold text-emerald-400 mb-1">Physical View</span>
-          <div class="w-28 h-[65px] bg-black border border-slate-700 rounded overflow-hidden flex items-center justify-center">
+          <span id="import-phys-title" class="text-[11px] font-semibold text-[#C2CF9E] mb-1">Physical View</span>
+          <div class="w-28 h-[65px] bg-black border border-[#272f38] rounded overflow-hidden flex items-center justify-center">
             <canvas id="import-physical-preview" width="144" height="84" class="w-full h-full"></canvas>
           </div>
         </div>
@@ -603,10 +651,10 @@
         <div>
           <label class="font-semibold text-slate-300 block mb-1">Aspect Ratio Mode</label>
           <div class="grid grid-cols-2 gap-2">
-            <button id="import-mode-anamorphic" class="p-2 rounded-lg bg-indigo-600 text-white font-medium border border-indigo-500 text-left">
+            <button id="import-mode-anamorphic" class="p-2 rounded-lg bg-[#0088CA] text-white font-medium border border-[#38bdf8] text-left">
               <div class="font-bold">Anamorphic (Shapes stay true!)</div>
             </button>
-            <button id="import-mode-stretch" class="p-2 rounded-lg bg-slate-800 text-slate-300 font-medium border border-slate-700 text-left">
+            <button id="import-mode-stretch" class="p-2 rounded-lg bg-[#171b20] text-slate-300 font-medium border border-[#272f38] text-left">
               <div class="font-bold">Grid 1:1 (Stretch)</div>
             </button>
           </div>
@@ -615,48 +663,51 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="font-semibold text-slate-300 block mb-1">Dithering</label>
-            <select id="import-dither" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white">
+            <select id="import-dither" class="w-full bg-[#0d0f11] border border-[#272f38] rounded-lg p-2 text-white">
               <option value="none">Nearest / Sharp</option>
               <option value="floyd" selected>Floyd-Steinberg</option>
             </select>
           </div>
           <div>
             <label class="font-semibold text-slate-300 block mb-1">Brightness: <span id="val-brightness">100%</span></label>
-            <input type="range" id="import-brightness" min="20" max="200" value="100" class="w-full accent-indigo-500">
+            <input type="range" id="import-brightness" min="20" max="200" value="100" class="w-full accent-[#0088CA]">
           </div>
         </div>
       </div>
 
-      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-        <button class="modal-close px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">Cancel</button>
-        <button id="btn-commit-import" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow">Apply to Canvas</button>
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-[#1f2429]">
+        <button class="modal-close px-4 py-2 rounded-lg bg-[#171b20] hover:bg-[#1f2429] text-xs font-semibold text-slate-300 border border-[#272f38]">Cancel</button>
+        <button id="btn-commit-import" class="px-4 py-2 rounded-lg bg-[#0088CA] hover:bg-[#0073ab] text-xs font-semibold text-white shadow-md shadow-[#0088CA]/20">Apply to Canvas</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: EXPORT -->
   <div id="modal-export" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-5 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+    <div class="bg-[#121518] border border-[#272f38] rounded-2xl max-w-lg w-full p-5 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-[#1f2429] pb-3">
         <h3 class="font-bold text-base text-white">Export & Save Art</h3>
         <button class="modal-close text-slate-400 hover:text-white text-lg font-bold">&times;</button>
       </div>
 
       <div class="grid grid-cols-2 gap-2 text-xs">
-        <button id="export-wled-json" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-emerald-300 font-semibold">
+        <button id="export-wled-json" class="p-2.5 rounded-xl bg-[#171b20] hover:bg-[#1f2429] text-left border border-[#272f38] text-[#38bdf8] font-semibold">
           📋 Copy WLED JSON
         </button>
-        <button id="export-fastled-c" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-left border border-slate-700 text-indigo-300 font-semibold">
+        <button id="export-fastled-c" class="p-2.5 rounded-xl bg-[#171b20] hover:bg-[#1f2429] text-left border border-[#272f38] text-[#C2CF9E] font-semibold">
           📋 Copy FastLED C++ (.h)
         </button>
       </div>
 
-      <textarea id="export-code-box" readonly class="w-full h-36 bg-slate-950 font-mono text-[11px] text-emerald-400 p-2.5 rounded-lg border border-slate-800 resize-none"></textarea>
+      <textarea id="export-code-box" readonly class="w-full h-36 bg-[#0d0f11] font-mono text-[11px] text-[#38bdf8] p-2.5 rounded-lg border border-[#1f2429] resize-none"></textarea>
     </div>
   </div>
 
   <!-- Integrated Standalone Engine Script -->
   <script>
+    // Embedded Base64 Bear Paw Logo for universal fallback
+    const EMBEDDED_LOGO_B64 = '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';
+
     // Bulletproof State Architecture with Dynamic Dimensions
     function createBlankGrid(w = state.width, h = state.height) {
       return Array.from({ length: h }, () => Array(w).fill('#000000'));
@@ -672,8 +723,8 @@
       },
       viewMode: 'physical',
       activeTool: 'pencil',
-      currentColor: '#FF0055',
-      recentColors: ['#FF0055', '#FF7700', '#FFEA00', '#00FF66', '#00E5FF', '#7B2CBF', '#FFFFFF', '#000000'],
+      currentColor: '#0088CA',
+      recentColors: ['#0088CA', '#A4B47C', '#1A1C1E', '#38bdf8', '#C2CF9E', '#242830', '#FFFFFF', '#000000'],
       frames: [],
       currentFrameIdx: 0,
       isPlaying: false,
@@ -703,6 +754,22 @@
     let importOriginalImg = null;
     let importMode = 'anamorphic';
 
+    // User's Signature Colors (Blue #0088CA, Light Olive #A4B47C, Volcanic Sand Black #1A1C1E)
+    const SIGNATURE_PALETTE = [
+      { name: 'Your Blue (#0088CA)', hex: '#0088CA' },
+      { name: 'Light Olive (#A4B47C)', hex: '#A4B47C' },
+      { name: 'Volcanic Sand Black (#1A1C1E)', hex: '#1A1C1E' },
+      { name: 'Sky Highlight (#38bdf8)', hex: '#38bdf8' },
+      { name: 'Pale Olive (#C2CF9E)', hex: '#C2CF9E' },
+      { name: 'Volcanic Basalt (#242830)', hex: '#242830' },
+      { name: 'Pure White (#FFFFFF)', hex: '#FFFFFF' },
+      { name: 'Deep Sea Blue (#005C8A)', hex: '#005C8A' },
+      { name: 'Deep Olive (#7D8C57)', hex: '#7D8C57' },
+      { name: 'Driftwood Sand (#D5CEBF)', hex: '#D5CEBF' },
+      { name: 'Dark Ash Charcoal (#3E4347)', hex: '#3E4347' },
+      { name: 'LED Off (#000000)', hex: '#000000' }
+    ];
+
     const PALETTES = [
       '#FF0000', '#FF4500', '#FFA500', '#FFD700', '#FFFF00', '#ADFF2F',
       '#00FF00', '#00FA9A', '#00FFFF', '#1E90FF', '#0000FF', '#8A2BE2',
@@ -727,6 +794,14 @@
       paintCtx = paintCanvas.getContext('2d');
       simCanvas = document.getElementById('sim-canvas');
       simCtx = simCanvas.getContext('2d');
+
+      // Setup logo fallback if file path fails in any context
+      const logoEl = document.getElementById('app-logo-img');
+      if (logoEl) {
+        logoEl.onerror = () => {
+          logoEl.src = `data:image/png;base64,${EMBEDDED_LOGO_B64}`;
+        };
+      }
 
       initColorPickers();
       initTools();
@@ -758,7 +833,7 @@
 
       if (badgeRes) badgeRes.textContent = `${state.width}×${state.height}`;
       if (badgeMm) badgeMm.textContent = `${state.widthMm}×${state.heightMm} mm`;
-      if (pitchDesc) pitchDesc.innerHTML = `Pitch: <strong>${pitchX}mm</strong> W × <strong>${pitchY}mm</strong> H (${par}:1 PAR)`;
+      if (pitchDesc) pitchDesc.innerHTML = `Pitch: <strong>${pitchX}mm</strong> W × <strong>${pitchY}mm</strong> H (<span class="text-[#C2CF9E]">${par}:1 PAR</span>)`;
       if (canvasPitch) canvasPitch.innerHTML = `Pitch: <strong>${pitchX}mm</strong> × <strong>${pitchY}mm</strong> (${par}:1)`;
       if (simAspect) simAspect.textContent = `${par}:1`;
       if (quickPng) quickPng.querySelector('span').textContent = `Download ${state.width}×${state.height} Pixel PNG`;
@@ -798,7 +873,7 @@
       const cellW = w / state.width;
       const cellH = h / state.height;
 
-      paintCtx.fillStyle = '#05050a';
+      paintCtx.fillStyle = '#050608';
       paintCtx.fillRect(0, 0, w, h);
 
       const inset = Math.max(1, Math.min(cellW, cellH) * 0.08);
@@ -810,12 +885,12 @@
           const cx = x * cellW;
           const cy = y * cellH;
 
-          // LED Bezel
-          paintCtx.fillStyle = '#111827';
+          // LED Bezel (Volcanic Sand Charcoal)
+          paintCtx.fillStyle = '#14171a';
           paintCtx.fillRect(cx, cy, cellW, cellH);
 
           // LED core
-          paintCtx.fillStyle = isBlack ? '#1e293b' : color;
+          paintCtx.fillStyle = isBlack ? '#1e242a' : color;
           paintCtx.beginPath();
           if (paintCtx.roundRect) {
             paintCtx.roundRect(cx + inset, cy + inset, cellW - inset * 2, cellH - inset * 2, Math.max(2, inset));
@@ -825,13 +900,13 @@
           paintCtx.fill();
 
           if (!isBlack) {
-            paintCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            paintCtx.fillStyle = 'rgba(255, 255, 255, 0.45)';
             paintCtx.beginPath();
             paintCtx.ellipse(cx + cellW / 2, cy + cellH / 2, Math.max(1.5, (cellW - inset * 2) * 0.25), Math.max(1.5, (cellH - inset * 2) * 0.25), 0, 0, Math.PI * 2);
             paintCtx.fill();
           }
 
-          paintCtx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+          paintCtx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
           paintCtx.strokeRect(cx, cy, cellW, cellH);
         }
       }
@@ -845,7 +920,7 @@
       const w = tCanvas.width;
       const h = tCanvas.height;
 
-      tCtx.fillStyle = '#05070d';
+      tCtx.fillStyle = '#060709';
       tCtx.fillRect(0, 0, w, h);
 
       const cellW = w / state.width;
@@ -881,10 +956,10 @@
           const cx = x * cellW + cellW / 2;
           const cy = y * cellH + cellH / 2;
 
-          tCtx.fillStyle = '#151a24';
+          tCtx.fillStyle = '#12161b';
           tCtx.fillRect(cx - ledRadius * 0.8, cy - ledRadius * 0.8, ledRadius * 1.6, ledRadius * 1.6);
 
-          tCtx.fillStyle = isBlack ? '#242b38' : color;
+          tCtx.fillStyle = isBlack ? '#1e242b' : color;
           tCtx.beginPath();
           tCtx.arc(cx, cy, ledRadius, 0, Math.PI * 2);
           tCtx.fill();
@@ -926,19 +1001,22 @@
         if (!state.isPointerDown) return;
         e.preventDefault();
         const coord = getCellCoord(e);
+        if (coord.x === state.lastCoord.x && coord.y === state.lastCoord.y) return;
+
         if (state.activeTool === 'pencil' || state.activeTool === 'eraser') {
-          if (!state.lastCoord || coord.x !== state.lastCoord.x || coord.y !== state.lastCoord.y) {
-            applyTool(coord.x, coord.y);
-            state.lastCoord = coord;
-          }
+          drawLine(state.lastCoord.x, state.lastCoord.y, coord.x, coord.y, state.activeTool === 'eraser' ? '#000000' : state.currentColor);
+          state.lastCoord = coord;
+          renderCanvas();
         } else if (['line', 'rect', 'circle'].includes(state.activeTool)) {
-          state.frames[state.currentFrameIdx] = cloneGrid(state.dragSnapshot);
-          applyDragShape(state.startCoord, coord);
+          // Live preview during drag
+          const restored = cloneGrid(state.dragSnapshot);
+          state.frames[state.currentFrameIdx] = restored;
+          applyShapePreview(state.startCoord, coord, state.activeTool, state.currentColor);
           renderCanvas();
         }
       };
 
-      const endDraw = () => {
+      const endDraw = (e) => {
         if (!state.isPointerDown) return;
         state.isPointerDown = false;
         pushHistory();
@@ -959,49 +1037,31 @@
       const grid = getCurrentGrid();
       if (state.activeTool === 'pencil') {
         grid[y][x] = state.currentColor;
-        recordRecentColor(state.currentColor);
+        renderCanvas();
       } else if (state.activeTool === 'eraser') {
         grid[y][x] = '#000000';
+        renderCanvas();
       } else if (state.activeTool === 'picker') {
         setColor(grid[y][x]);
         setActiveTool('pencil');
       } else if (state.activeTool === 'fill') {
-        floodFill(x, y, state.currentColor);
+        floodFill(x, y, grid[y][x], state.currentColor);
+        renderCanvas();
       }
-      renderCanvas();
     }
 
-    function applyDragShape(start, end) {
+    function drawLine(x0, y0, x1, y1, color) {
       const grid = getCurrentGrid();
-      if (state.activeTool === 'line') {
-        drawLine(grid, start.x, start.y, end.x, end.y, state.currentColor);
-      } else if (state.activeTool === 'rect') {
-        const x0 = Math.min(start.x, end.x), x1 = Math.max(start.x, end.x);
-        const y0 = Math.min(start.y, end.y), y1 = Math.max(start.y, end.y);
-        for (let y = y0; y <= y1; y++) {
-          for (let x = x0; x <= x1; x++) {
-            if (x === x0 || x === x1 || y === y0 || y === y1) grid[y][x] = state.currentColor;
-          }
-        }
-      } else if (state.activeTool === 'circle') {
-        const cx = (start.x + end.x) / 2;
-        const cy = (start.y + end.y) / 2;
-        const rx = Math.abs(end.x - start.x) / 2;
-        const ry = rx * state.pixelRatio;
-        for (let a = 0; a < Math.PI * 2; a += 0.08) {
-          const px = Math.round(cx + Math.cos(a) * rx);
-          const py = Math.round(cy + Math.sin(a) * ry);
-          if (px >= 0 && px < state.width && py >= 0 && py < state.height) grid[py][px] = state.currentColor;
-        }
-      }
-    }
-
-    function drawLine(grid, x0, y0, x1, y1, color) {
-      const dx = Math.abs(x1 - x0), dy = Math.abs(y1 - y0);
-      const sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+      const dx = Math.abs(x1 - x0);
+      const dy = Math.abs(y1 - y0);
+      const sx = x0 < x1 ? 1 : -1;
+      const sy = y0 < y1 ? 1 : -1;
       let err = dx - dy;
+
       while (true) {
-        if (x0 >= 0 && x0 < state.width && y0 >= 0 && y0 < state.height) grid[y0][x0] = color;
+        if (x0 >= 0 && x0 < state.width && y0 >= 0 && y0 < state.height) {
+          grid[y0][x0] = color;
+        }
         if (x0 === x1 && y0 === y1) break;
         const e2 = 2 * err;
         if (e2 > -dy) { err -= dy; x0 += sx; }
@@ -1009,64 +1069,95 @@
       }
     }
 
-    function floodFill(sx, sy, target) {
+    function applyShapePreview(start, end, tool, color) {
       const grid = getCurrentGrid();
-      const orig = grid[sy][sx];
-      if (orig === target) return;
-      const queue = [[sx, sy]];
-      const seen = new Set();
-      while (queue.length) {
+      if (tool === 'line') {
+        drawLine(start.x, start.y, end.x, end.y, color);
+      } else if (tool === 'rect') {
+        const xMin = Math.min(start.x, end.x);
+        const xMax = Math.max(start.x, end.x);
+        const yMin = Math.min(start.y, end.y);
+        const yMax = Math.max(start.y, end.y);
+        for (let x = xMin; x <= xMax; x++) {
+          grid[yMin][x] = color;
+          grid[yMax][x] = color;
+        }
+        for (let y = yMin; y <= yMax; y++) {
+          grid[y][xMin] = color;
+          grid[y][xMax] = color;
+        }
+      } else if (tool === 'circle') {
+        // Physical circle taking non-square pitch into account!
+        const dx = (end.x - start.x);
+        const dy = (end.y - start.y) * state.pixelRatio;
+        const radius = Math.sqrt(dx * dx + dy * dy);
+
+        for (let theta = 0; theta < Math.PI * 2; theta += 0.05) {
+          const cx = Math.round(start.x + radius * Math.cos(theta));
+          const cy = Math.round(start.y + (radius / state.pixelRatio) * Math.sin(theta));
+          if (cx >= 0 && cx < state.width && cy >= 0 && cy < state.height) {
+            grid[cy][cx] = color;
+          }
+        }
+      }
+    }
+
+    function floodFill(startX, startY, targetColor, fillColor) {
+      if (targetColor === fillColor) return;
+      const grid = getCurrentGrid();
+      const queue = [[startX, startY]];
+      const visited = new Set();
+
+      while (queue.length > 0) {
         const [x, y] = queue.pop();
         const key = `${x},${y}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        if (x < 0 || x >= state.width || y < 0 || y >= state.height || grid[y][x] !== orig) continue;
-        grid[y][x] = target;
-        queue.push([x+1, y], [x-1, y], [x, y+1], [x, y-1]);
+        if (visited.has(key)) continue;
+        visited.add(key);
+
+        if (x < 0 || x >= state.width || y < 0 || y >= state.height) continue;
+        if (grid[y][x] !== targetColor) continue;
+
+        grid[y][x] = fillColor;
+        queue.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
       }
     }
 
+    // Undo / Redo History
     function pushHistory() {
-      state.historyStep++;
-      state.history = state.history.slice(0, state.historyStep);
-      state.history.push(cloneGrid(getCurrentGrid()));
-      if (state.history.length > 30) {
-        state.history.shift();
-        state.historyStep--;
-      }
-    }
-
-    function undo() {
-      if (state.historyStep > 0) {
-        state.historyStep--;
-        state.frames[state.currentFrameIdx] = cloneGrid(state.history[state.historyStep]);
-        renderCanvas();
-        renderFramesStrip();
-      }
-    }
-
-    function redo() {
-      if (state.historyStep < state.history.length - 1) {
-        state.historyStep++;
-        state.frames[state.currentFrameIdx] = cloneGrid(state.history[state.historyStep]);
-        renderCanvas();
-        renderFramesStrip();
-      }
+      const snap = cloneGrid(getCurrentGrid());
+      state.history = state.history.slice(0, state.historyStep + 1);
+      state.history.push(snap);
+      if (state.history.length > 30) state.history.shift();
+      state.historyStep = state.history.length - 1;
     }
 
     function initTransforms() {
-      document.getElementById('btn-undo').onclick = undo;
-      document.getElementById('btn-redo').onclick = redo;
-      window.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
-        else if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); redo(); }
-      });
+      document.getElementById('btn-undo').onclick = () => {
+        if (state.historyStep > 0) {
+          state.historyStep--;
+          state.frames[state.currentFrameIdx] = cloneGrid(state.history[state.historyStep]);
+          renderCanvas();
+          renderFramesStrip();
+          if (state.wledAutoSync) sendToWled();
+        }
+      };
+
+      document.getElementById('btn-redo').onclick = () => {
+        if (state.historyStep < state.history.length - 1) {
+          state.historyStep++;
+          state.frames[state.currentFrameIdx] = cloneGrid(state.history[state.historyStep]);
+          renderCanvas();
+          renderFramesStrip();
+          if (state.wledAutoSync) sendToWled();
+        }
+      };
 
       document.getElementById('btn-clear').onclick = () => {
         state.frames[state.currentFrameIdx] = createBlankGrid(state.width, state.height);
         renderCanvas();
         pushHistory();
         renderFramesStrip();
+        if (state.wledAutoSync) sendToWled();
       };
 
       const shift = (dx, dy) => {
@@ -1081,6 +1172,7 @@
         renderCanvas();
         pushHistory();
         renderFramesStrip();
+        if (state.wledAutoSync) sendToWled();
       };
 
       document.getElementById('shift-up').onclick = () => shift(0, -1);
@@ -1093,6 +1185,7 @@
         renderCanvas();
         pushHistory();
         renderFramesStrip();
+        if (state.wledAutoSync) sendToWled();
       };
 
       document.getElementById('btn-flip-v').onclick = () => {
@@ -1100,18 +1193,19 @@
         renderCanvas();
         pushHistory();
         renderFramesStrip();
+        if (state.wledAutoSync) sendToWled();
       };
 
       document.getElementById('mode-physical').onclick = () => {
         state.viewMode = 'physical';
-        document.getElementById('mode-physical').className = 'px-2.5 py-1 rounded-md bg-indigo-600 text-white shadow transition-all';
+        document.getElementById('mode-physical').className = 'px-2.5 py-1 rounded-md bg-[#0088CA] text-white shadow transition-all';
         document.getElementById('mode-square').className = 'px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition-all';
         resizeCanvasView();
       };
 
       document.getElementById('mode-square').onclick = () => {
         state.viewMode = 'square';
-        document.getElementById('mode-square').className = 'px-2.5 py-1 rounded-md bg-indigo-600 text-white shadow transition-all';
+        document.getElementById('mode-square').className = 'px-2.5 py-1 rounded-md bg-[#0088CA] text-white shadow transition-all';
         document.getElementById('mode-physical').className = 'px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition-all';
         resizeCanvasView();
       };
@@ -1133,11 +1227,26 @@
     function initColorPickers() {
       const nativeColor = document.getElementById('native-color');
       const hexInput = document.getElementById('hex-input');
+      const sigContainer = document.getElementById('signature-colors');
       const presetContainer = document.getElementById('preset-colors');
 
       nativeColor.oninput = (e) => setColor(e.target.value);
       hexInput.onchange = (e) => setColor(e.target.value);
 
+      // Populate User's Signature Swatches (Blue, Light Olive, Volcanic Sand)
+      if (sigContainer) {
+        sigContainer.innerHTML = '';
+        SIGNATURE_PALETTE.forEach(item => {
+          const swatch = document.createElement('div');
+          swatch.className = 'color-swatch shadow-sm';
+          swatch.style.backgroundColor = item.hex;
+          swatch.title = item.name;
+          swatch.onclick = () => setColor(item.hex);
+          sigContainer.appendChild(swatch);
+        });
+      }
+
+      // Populate Standard LED Swatches
       presetContainer.innerHTML = '';
       PALETTES.forEach(col => {
         const swatch = document.createElement('div');
@@ -1148,6 +1257,7 @@
       });
 
       renderRecentColors();
+      setColor(state.currentColor);
     }
 
     function setColor(hex) {
@@ -1458,7 +1568,7 @@
       const pill = document.getElementById('wled-pill-status');
       const dot = document.getElementById('wled-dot-status');
       pill.textContent = 'Testing...';
-      pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-amber-500/20 text-amber-300';
+      pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30';
       banner.classList.remove('hidden');
       banner.textContent = `Connecting to http://${cleanIp}/json/info...`;
 
@@ -1474,17 +1584,17 @@
         if (res.ok) {
           const info = await res.json();
           pill.textContent = 'Connected';
-          pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-emerald-500/20 text-emerald-400';
-          dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-          banner.innerHTML = `<span class="text-emerald-400 font-bold">✅ Online:</span> WLED v${info.ver || ''} (${info.name || cleanIp}), ${info.leds?.count || '?'} LEDs total.`;
+          pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-[#A4B47C]/20 text-[#C2CF9E] border border-[#A4B47C]/40';
+          dot.className = 'w-2 h-2 rounded-full bg-[#A4B47C] shadow-[0_0_8px_#A4B47C]';
+          banner.innerHTML = `<span class="text-[#C2CF9E] font-bold">✅ Online:</span> WLED v${info.ver || ''} (${info.name || cleanIp}), ${info.leds?.count || '?'} LEDs total.`;
         } else {
           throw new Error(`HTTP ${res.status}`);
         }
       } catch (err) {
         pill.textContent = 'Err';
-        pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-rose-500/20 text-rose-400';
-        dot.className = 'w-2 h-2 rounded-full bg-rose-400';
-        banner.innerHTML = `<span class="text-rose-400 font-bold">❌ Connection Failed:</span> ${err.message || 'Cannot reach WLED'}. <a href="javascript:void(0)" onclick="document.getElementById('btn-wled-diag').click()" class="underline text-indigo-400">View Fix</a>`;
+        pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-rose-500/20 text-rose-400 border border-rose-500/30';
+        dot.className = 'w-2 h-2 rounded-full bg-rose-400 shadow-[0_0_8px_#f43f5e]';
+        banner.innerHTML = `<span class="text-rose-400 font-bold">❌ Connection Failed:</span> ${err.message || 'Cannot reach WLED'}. <a href="javascript:void(0)" onclick="document.getElementById('btn-wled-diag').click()" class="underline text-[#38bdf8]">View Fix</a>`;
         showWledDiag(cleanIp, err);
       }
     }
@@ -1499,7 +1609,7 @@
       const pill = document.getElementById('wled-pill-status');
       const dot = document.getElementById('wled-dot-status');
       pill.textContent = 'Pushing...';
-      pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-amber-500/20 text-amber-300';
+      pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30';
 
       const grid = getCurrentGrid();
       const totalLeds = state.width * state.height;
@@ -1537,15 +1647,15 @@
 
         if (res.ok) {
           pill.textContent = 'Synced';
-          pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-emerald-500/20 text-emerald-400';
-          dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+          pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-[#A4B47C]/20 text-[#C2CF9E] border border-[#A4B47C]/40';
+          dot.className = 'w-2 h-2 rounded-full bg-[#A4B47C] shadow-[0_0_8px_#A4B47C]';
         } else {
           throw new Error(`HTTP ${res.status}`);
         }
       } catch (err) {
         pill.textContent = 'Err';
-        pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-rose-500/20 text-rose-400';
-        dot.className = 'w-2 h-2 rounded-full bg-rose-400';
+        pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-rose-500/20 text-rose-400 border border-rose-500/30';
+        dot.className = 'w-2 h-2 rounded-full bg-rose-400 shadow-[0_0_8px_#f43f5e]';
         showWledDiag(cleanIp, err);
       }
     }
@@ -1678,14 +1788,14 @@
 
       document.getElementById('import-mode-anamorphic').onclick = () => {
         importMode = 'anamorphic';
-        document.getElementById('import-mode-anamorphic').className = 'p-2 rounded-lg bg-indigo-600 text-white font-medium border border-indigo-500 text-left';
-        document.getElementById('import-mode-stretch').className = 'p-2 rounded-lg bg-slate-800 text-slate-300 font-medium border border-slate-700 text-left';
+        document.getElementById('import-mode-anamorphic').className = 'p-2 rounded-lg bg-[#0088CA] text-white font-medium border border-[#38bdf8] text-left';
+        document.getElementById('import-mode-stretch').className = 'p-2 rounded-lg bg-[#171b20] text-slate-300 font-medium border border-[#272f38] text-left';
         updateImportPreview();
       };
       document.getElementById('import-mode-stretch').onclick = () => {
         importMode = 'stretch';
-        document.getElementById('import-mode-stretch').className = 'p-2 rounded-lg bg-indigo-600 text-white font-medium border border-indigo-500 text-left';
-        document.getElementById('import-mode-anamorphic').className = 'p-2 rounded-lg bg-slate-800 text-slate-300 font-medium border border-slate-700 text-left';
+        document.getElementById('import-mode-stretch').className = 'p-2 rounded-lg bg-[#0088CA] text-white font-medium border border-[#38bdf8] text-left';
+        document.getElementById('import-mode-anamorphic').className = 'p-2 rounded-lg bg-[#171b20] text-slate-300 font-medium border border-[#272f38] text-left';
         updateImportPreview();
       };
 
@@ -1755,7 +1865,7 @@
       pCanvas.width = 160;
       pCanvas.height = Math.round(160 / (state.widthMm / state.heightMm));
       const pCtx = pCanvas.getContext('2d');
-      pCtx.fillStyle = '#05070d';
+      pCtx.fillStyle = '#060709';
       pCtx.fillRect(0, 0, pCanvas.width, pCanvas.height);
 
       const cellW = pCanvas.width / state.width;
