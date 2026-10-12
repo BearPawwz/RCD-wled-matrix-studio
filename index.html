@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>WLED Matrix Studio — Anamorphic 12x12 (144mm x 84mm)</title>
-  <meta name="description" content="Art studio & pixel converter for 12x12 WLED matrix with 144mm x 84mm physical aspect ratio.">
+  <title>WLED Matrix Studio — Custom & Anamorphic LED Art</title>
+  <meta name="description" content="Art studio & pixel converter for WLED matrices with customizable dimensions and non-square physical pitch compensation.">
   <meta name="theme-color" content="#020617">
   <link rel="manifest" href="manifest.json">
   
@@ -13,7 +13,6 @@
   
   <!-- Fallback & Core Styles -->
   <style>
-    /* Robust base styling */
     * { box-sizing: border-box; }
     body {
       background-color: #020617;
@@ -54,9 +53,9 @@
     }
 
     .frame-thumb {
-      width: 44px;
-      height: 44px;
-      border-radius: 6px;
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
       border: 2px solid #334155;
       background: #000;
       cursor: pointer;
@@ -64,15 +63,57 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
       transition: all 0.15s;
+    }
+
+    .frame-thumb:hover {
+      border-color: #64748b;
     }
 
     .frame-thumb.active {
       border-color: #6366f1;
-      box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
     }
 
-    /* Modal Backdrop */
+    .frame-thumb-badge {
+      position: absolute;
+      bottom: 1px;
+      left: 3px;
+      font-size: 9px;
+      font-family: monospace;
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(0, 0, 0, 0.6);
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+
+    .frame-del-btn {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ef4444;
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #ffffff;
+      cursor: pointer;
+      opacity: 0.85;
+      transition: all 0.15s;
+    }
+
+    .frame-del-btn:hover {
+      transform: scale(1.2);
+      background: #dc2626;
+      opacity: 1;
+    }
+
     .modal-backdrop {
       background: rgba(0, 0, 0, 0.85);
       backdrop-filter: blur(4px);
@@ -84,16 +125,16 @@
   <!-- Header / Navigation -->
   <header class="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-md">
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/25">
-        12²
+      <div id="header-logo-badge" class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/25 cursor-pointer" title="Click to change panel dimensions">
+        LED
       </div>
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-base md:text-lg tracking-tight text-white">WLED Matrix Studio</h1>
-          <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">12×12</span>
-          <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">144×84 mm</span>
+          <button id="header-badge-res" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30 cursor-pointer transition-colors" title="Click to change matrix resolution">12×12</button>
+          <button id="header-badge-mm" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/30 cursor-pointer transition-colors" title="Click to change physical dimensions">144×84 mm</button>
         </div>
-        <p class="text-[11px] text-slate-400 hidden xs:block">Anamorphic: <strong>1.714:1</strong> (12.0mm W × 7.0mm H pitch)</p>
+        <p id="header-pitch-desc" class="text-[11px] text-slate-400 hidden xs:block">Pitch: <strong>12.0mm</strong> W × <strong>7.0mm</strong> H (1.714:1 PAR)</p>
       </div>
     </div>
 
@@ -110,8 +151,8 @@
       </button>
 
       <!-- Settings Button -->
-      <button id="btn-open-settings" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" title="Settings (Dimensions & Wiring)">
-        ⚙️
+      <button id="btn-open-settings" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-1.5" title="Panel Dimensions & Setup">
+        <span>⚙️ Setup Panel</span>
       </button>
     </div>
   </header>
@@ -119,20 +160,20 @@
   <!-- Main Content Layout -->
   <main class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
     
-    <!-- LEFT / TOP TOOLBAR -->
+    <!-- LEFT TOOLBAR -->
     <aside class="bg-slate-900 border-r border-slate-800 p-2.5 flex lg:flex-col gap-2 justify-between items-center z-20 overflow-x-auto lg:overflow-x-visible">
       
       <!-- Primary Drawing Tools -->
       <div class="flex lg:flex-col gap-1.5 items-center">
-        <button data-tool="pencil" class="tool-btn active p-2 rounded-lg bg-indigo-600 text-white transition-all text-xs font-bold" title="Pencil">✏️</button>
-        <button data-tool="line" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Line">📏</button>
+        <button data-tool="pencil" class="tool-btn active p-2 rounded-lg bg-indigo-600 text-white transition-all text-xs font-bold" title="Pencil (Draw)">✏️</button>
+        <button data-tool="line" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Line Tool">📏</button>
         <button data-tool="rect" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Rectangle">◻️</button>
-        <button data-tool="circle" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold relative" title="Circle (Anamorphic / Physically Round)">
+        <button data-tool="circle" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold relative" title="Circle (Anamorphically round in physical space)">
           ⭕
           <span class="absolute bottom-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
         </button>
         <button data-tool="fill" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Flood Fill">🪣</button>
-        <button data-tool="picker" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Eyedropper">💉</button>
+        <button data-tool="picker" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Color Picker (Eyedropper)">💉</button>
         <button data-tool="eraser" class="tool-btn p-2 rounded-lg text-slate-300 hover:bg-slate-800 transition-all text-xs font-bold" title="Eraser (Turn LED Off)">🧹</button>
       </div>
 
@@ -152,7 +193,7 @@
         <!-- View Mode Switcher -->
         <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs font-medium">
           <button id="mode-physical" class="px-2.5 py-1 rounded-md bg-indigo-600 text-white shadow transition-all">
-            Physical LED View (144×84mm)
+            Physical LED View
           </button>
           <button id="mode-square" class="px-2.5 py-1 rounded-md text-slate-400 hover:text-slate-200 transition-all">
             Square 1:1 Grid
@@ -171,9 +212,9 @@
         </div>
 
         <!-- Pitch badge -->
-        <div class="flex items-center gap-1 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg">
+        <div id="canvas-pitch-pill" class="flex items-center gap-1 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg cursor-pointer hover:bg-amber-500/20 transition-colors" title="Click to adjust panel dimensions">
           <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-          <span>Pitch: <strong>12.0mm</strong> × <strong>7.0mm</strong></span>
+          <span id="canvas-pitch-text">Pitch: <strong>12.0mm</strong> × <strong>7.0mm</strong> (1.714:1)</span>
         </div>
       </div>
 
@@ -189,7 +230,7 @@
         <div id="pip-container" class="absolute bottom-4 right-4 bg-slate-900/90 backdrop-blur-md p-2 rounded-xl border border-slate-700 shadow-xl flex flex-col gap-1 z-10 max-w-[190px]">
           <div class="flex items-center justify-between text-[10px] text-slate-400 font-medium px-1">
             <span>REAL-WORLD LED GLOW</span>
-            <span class="text-emerald-400 font-mono">1.714:1</span>
+            <span id="sim-aspect-badge" class="text-emerald-400 font-mono">1.714:1</span>
           </div>
           <div class="w-full flex items-center justify-center bg-black/90 rounded-lg p-1 border border-slate-800 overflow-hidden">
             <canvas id="sim-canvas" width="168" height="98" class="rounded shadow"></canvas>
@@ -199,15 +240,44 @@
       </div>
 
       <!-- Animation / Frames bar -->
-      <div class="mt-3 bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex items-center justify-between gap-3">
-        <div class="flex items-center gap-2 overflow-x-auto py-1" id="frames-strip">
+      <div class="mt-3 bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between gap-3 shadow-md">
+        
+        <!-- Left: Frame Thumbnails Strip -->
+        <div class="flex items-center gap-2 overflow-x-auto py-1 flex-1 min-w-[180px]" id="frames-strip">
           <!-- Frame Thumbnails inserted by JS -->
         </div>
-        <div class="flex items-center gap-1.5 shrink-0">
-          <button id="btn-add-frame" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700">
-            + Frame
+
+        <!-- Right: Frame Controls -->
+        <div class="flex items-center gap-1.5 shrink-0 flex-wrap">
+          <!-- Frame position counter -->
+          <span id="frame-counter" class="text-xs font-mono font-bold text-indigo-300 px-2 py-1 bg-slate-950 rounded-lg border border-slate-800" title="Current frame / Total frames">
+            1 / 1
+          </span>
+
+          <!-- Reorder buttons -->
+          <div class="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800">
+            <button id="btn-move-frame-left" class="p-1 rounded hover:bg-slate-800 text-slate-300 text-xs px-1.5" title="Move frame earlier in sequence">◀</button>
+            <button id="btn-move-frame-right" class="p-1 rounded hover:bg-slate-800 text-slate-300 text-xs px-1.5" title="Move frame later in sequence">▶</button>
+          </div>
+
+          <!-- Add / Insert frame buttons -->
+          <button id="btn-add-frame" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow transition-all flex items-center gap-1" title="Insert a copy of the current frame right next to it">
+            <span>+ Copy Next</span>
           </button>
-          <button id="btn-play-anim" class="px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow">
+          <button id="btn-add-blank-frame" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700 transition-colors" title="Insert a blank frame right next to the current frame">
+            + Blank Next
+          </button>
+
+          <!-- Delete frame button -->
+          <button id="btn-delete-frame" class="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-xs text-rose-300 font-semibold border border-rose-500/30 transition-colors flex items-center gap-1" title="Delete current frame">
+            <span>🗑️ Delete</span>
+          </button>
+
+          <!-- Divider -->
+          <div class="h-4 w-px bg-slate-800 mx-0.5 hidden sm:block"></div>
+
+          <!-- Play / FPS controls -->
+          <button id="btn-play-anim" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow transition-all flex items-center gap-1">
             <span id="play-text">▶ Play</span>
           </button>
           <input type="range" id="anim-fps" min="1" max="15" value="4" class="w-16 accent-indigo-500" title="Animation FPS">
@@ -249,16 +319,31 @@
       <!-- Live WLED Quick Sync Box -->
       <div class="bg-slate-950/70 p-3 rounded-xl border border-slate-800/80 flex flex-col gap-2.5">
         <div class="flex items-center justify-between">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">WLED Live Stream</h2>
+          <div class="flex items-center gap-1.5">
+            <span id="wled-dot-status" class="w-2 h-2 rounded-full bg-slate-600"></span>
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">WLED Link</h2>
+          </div>
           <span id="wled-pill-status" class="text-[10px] px-2 py-0.5 rounded font-mono bg-slate-800 text-slate-400">Ready</span>
         </div>
 
-        <div class="flex gap-1.5">
-          <input type="text" id="wled-ip-input" placeholder="e.g. 192.168.1.120" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none">
-          <button id="btn-sync-wled" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow">
-            Push
-          </button>
+        <div class="flex flex-col gap-1.5">
+          <div class="flex gap-1.5">
+            <input type="text" id="wled-ip-input" placeholder="e.g. 192.168.1.120" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-indigo-500">
+            <button id="btn-sync-wled" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow transition-all flex items-center gap-1" title="Push frame to WLED">
+              Push
+            </button>
+          </div>
+          <div class="flex items-center justify-between text-xs px-0.5">
+            <button id="btn-ping-wled" class="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium transition-colors flex items-center gap-1">
+              <span>🔍 Test Connection</span>
+            </button>
+            <button id="btn-wled-diag" class="text-[11px] text-slate-400 hover:text-slate-200 transition-colors">
+              Troubleshoot ℹ️
+            </button>
+          </div>
         </div>
+
+        <div id="wled-info-banner" class="hidden text-[11px] bg-slate-900 p-2 rounded-lg border border-slate-800 text-slate-300 leading-snug"></div>
 
         <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 pt-1">
           <input type="checkbox" id="wled-auto-sync" class="rounded bg-slate-800 border-slate-700 text-indigo-600">
@@ -269,17 +354,223 @@
       <!-- Quick Export Actions -->
       <div class="flex flex-col gap-2">
         <button id="btn-quick-png" class="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 flex items-center justify-center gap-2">
-          <span>Download 12×12 Pixel PNG</span>
+          <span>Download Pixel PNG</span>
         </button>
 
         <button id="btn-quick-glow-png" class="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 flex items-center justify-center gap-2">
-          <span>Download 144×84mm Glowing Render</span>
+          <span>Download Glowing Render</span>
         </button>
       </div>
 
     </aside>
 
   </main>
+
+  <!-- MODAL: PANEL SETUP & DIMENSIONS -->
+  <div id="modal-settings" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-5 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-indigo-400 text-lg">⚙️</span>
+          <h3 class="font-bold text-base text-white">Panel Dimensions & Setup</h3>
+        </div>
+        <button class="modal-close text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <!-- Presets bar -->
+      <div>
+        <label class="font-semibold text-slate-300 text-xs block mb-1.5">Quick Presets</label>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs">
+          <button type="button" class="preset-btn p-2 rounded-lg bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-600/50 text-left font-medium transition-colors" data-w="12" data-h="12" data-wmm="144" data-hmm="84">
+            <div class="font-bold">12×12 (144×84mm)</div>
+            <div class="text-[10px] text-slate-400">Your Custom Panel</div>
+          </button>
+          <button type="button" class="preset-btn p-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 text-left font-medium transition-colors" data-w="16" data-h="16" data-wmm="160" data-hmm="160">
+            <div class="font-bold">16×16 (160×160mm)</div>
+            <div class="text-[10px] text-slate-400">Standard Square</div>
+          </button>
+          <button type="button" class="preset-btn p-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 text-left font-medium transition-colors" data-w="8" data-h="8" data-wmm="80" data-hmm="80">
+            <div class="font-bold">8×8 (80×80mm)</div>
+            <div class="text-[10px] text-slate-400">Mini Matrix</div>
+          </button>
+          <button type="button" class="preset-btn p-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 text-left font-medium transition-colors" data-w="16" data-h="8" data-wmm="160" data-hmm="80">
+            <div class="font-bold">16×8 (160×80mm)</div>
+            <div class="text-[10px] text-slate-400">Rectangle 2:1</div>
+          </button>
+          <button type="button" class="preset-btn p-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 text-left font-medium transition-colors" data-w="32" data-h="8" data-wmm="320" data-hmm="80">
+            <div class="font-bold">32×8 (320×80mm)</div>
+            <div class="text-[10px] text-slate-400">Wide Banner</div>
+          </button>
+          <button type="button" class="preset-btn p-2 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 text-left font-medium transition-colors" data-w="32" data-h="32" data-wmm="192" data-hmm="192">
+            <div class="font-bold">32×32 (192×192mm)</div>
+            <div class="text-[10px] text-slate-400">1024 LEDs High-Res</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <!-- LED Grid Resolution -->
+        <div>
+          <label class="font-semibold text-slate-300 block mb-1">Matrix Resolution (LED Count)</label>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <span class="text-[11px] text-slate-400 block mb-0.5">Columns (Width in LEDs)</span>
+              <input type="number" id="setting-width-leds" value="12" min="1" max="128" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-mono focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <span class="text-[11px] text-slate-400 block mb-0.5">Rows (Height in LEDs)</span>
+              <input type="number" id="setting-height-leds" value="12" min="1" max="128" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-mono focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- Physical Dimensions in mm -->
+        <div>
+          <label class="font-semibold text-slate-300 block mb-1">Physical Panel Size (mm)</label>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <span class="text-[11px] text-slate-400 block mb-0.5">Physical Width (mm)</span>
+              <input type="number" id="setting-width-mm" value="144" min="1" max="5000" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-mono focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <span class="text-[11px] text-slate-400 block mb-0.5">Physical Height (mm)</span>
+              <input type="number" id="setting-height-mm" value="84" min="1" max="5000" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white font-mono focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Geometry calculation box -->
+        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex flex-col gap-1 text-[11px]">
+          <div class="flex justify-between">
+            <span class="text-slate-400">Total LEDs:</span>
+            <span id="geo-total-leds" class="font-mono text-emerald-400 font-bold">144 LEDs</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Horizontal Pitch:</span>
+            <span id="geo-pitch-x" class="font-mono text-slate-200">12.00 mm/LED</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Vertical Pitch:</span>
+            <span id="geo-pitch-y" class="font-mono text-slate-200">7.00 mm/LED</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Pixel Aspect Ratio (PAR):</span>
+            <span id="geo-par" class="font-mono text-amber-300 font-bold">1.714 : 1 (Rectangular / Wide)</span>
+          </div>
+        </div>
+
+        <!-- Resize Behavior -->
+        <div>
+          <label class="font-semibold text-slate-300 block mb-1">When Changing Resolution:</label>
+          <div class="flex gap-4">
+            <label class="flex items-center gap-1.5 text-slate-300 cursor-pointer">
+              <input type="radio" name="resize-behavior" value="crop" checked class="text-indigo-600 bg-slate-800 border-slate-700">
+              <span>Preserve & crop/expand art</span>
+            </label>
+            <label class="flex items-center gap-1.5 text-slate-300 cursor-pointer">
+              <input type="radio" name="resize-behavior" value="clear" class="text-indigo-600 bg-slate-800 border-slate-700">
+              <span>Clear to black</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Wiring Configuration -->
+        <div>
+          <label class="font-semibold text-slate-300 block mb-1">Strip Wiring Direction</label>
+          <select id="setting-wiring-dir" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white">
+            <option value="vertical" selected>Vertical Strips (strips along height)</option>
+            <option value="horizontal">Horizontal Strips (strips along width)</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="font-semibold text-slate-300 block mb-1">Layout</label>
+            <select id="setting-serpentine" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white">
+              <option value="true" selected>Serpentine (Zig-zag)</option>
+              <option value="false">Non-Serpentine (Parallel)</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-semibold text-slate-300 block mb-1">First LED Corner</label>
+            <select id="setting-start-corner" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white">
+              <option value="top-left" selected>Top-Left</option>
+              <option value="bottom-left">Bottom-Left</option>
+              <option value="top-right">Top-Right</option>
+              <option value="bottom-right">Bottom-Right</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+        <button class="modal-close px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">Cancel</button>
+        <button id="btn-apply-settings" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow">Apply & Resize Panel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: WLED TROUBLESHOOTER & DIAGNOSTICS -->
+  <div id="modal-wled-diag" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-5 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-amber-400 text-lg">⚠️</span>
+          <h3 class="font-bold text-base text-white">WLED Connection Troubleshooter</h3>
+        </div>
+        <button class="modal-close text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <!-- Error Status Box -->
+      <div class="bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl flex flex-col gap-1 text-xs">
+        <div class="flex items-center justify-between font-bold text-rose-300">
+          <span>Target IP: <span id="diag-target-ip" class="font-mono text-white">Not Set</span></span>
+          <span id="diag-status-badge" class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-mono">Failed</span>
+        </div>
+        <p id="diag-error-message" class="text-rose-200 text-[11px] font-mono mt-1">Browser blocked request</p>
+      </div>
+
+      <!-- Solutions -->
+      <div class="space-y-3 text-xs text-slate-300">
+        <div id="diag-mixed-content-warning" class="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl">
+          <h4 class="font-bold text-amber-300 text-xs mb-1">🚨 Reason: Browser Security Policy (Mixed Content)</h4>
+          <p class="text-[11px] text-amber-200/90 leading-relaxed">
+            You are currently accessing this app over an <strong>HTTPS</strong> connection (such as GitHub Pages). Web browsers strictly block HTTPS websites from making network requests to unencrypted local IP addresses (like <code class="font-mono bg-black/40 px-1 rounded">http://192.168.x.x</code>).
+          </p>
+          <div class="mt-2.5 flex flex-col gap-1.5 text-[11px]">
+            <div class="font-semibold text-white">How to fix it:</div>
+            <div class="flex items-start gap-1.5">
+              <span class="text-emerald-400 font-bold">1.</span>
+              <span><strong>Run Locally (Easiest & Best):</strong> Open <code class="font-mono bg-black/40 px-1 rounded">index.html</code> directly on your PC by double-clicking it. When opened as a local file (<code class="font-mono">file:///...</code>), Chrome permits local network access with zero blocks!</span>
+            </div>
+            <div class="flex items-start gap-1.5">
+              <span class="text-emerald-400 font-bold">2.</span>
+              <span><strong>On Chrome (Android or Desktop):</strong> Click the <em>Tune / Lock icon</em> next to the URL bar $\rightarrow$ <em>Site settings</em> $\rightarrow$ find <em>"Insecure content"</em> $\rightarrow$ change from Block to <strong>Allow</strong>.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+          <div class="font-bold text-white text-xs">Verify WLED Manually:</div>
+          <div class="flex gap-2">
+            <button id="btn-diag-open-wled" class="flex-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700">
+              Open WLED in New Tab ↗
+            </button>
+            <button id="btn-diag-copy-curl" class="flex-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700">
+              Copy cURL Test Command 📋
+            </button>
+          </div>
+          <button id="btn-diag-copy-preset" class="w-full px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow">
+            Copy WLED JSON Preset (Paste directly into WLED)
+          </button>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2 border-t border-slate-800">
+        <button class="modal-close px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">Close</button>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: IMAGE IMPORTER -->
   <div id="modal-import" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
@@ -297,11 +588,11 @@
 
       <div class="grid grid-cols-2 gap-3 items-center bg-slate-950 p-3 rounded-xl border border-slate-800">
         <div class="flex flex-col items-center">
-          <span class="text-[11px] font-semibold text-slate-400 mb-1">12×12 Matrix Grid</span>
+          <span id="import-grid-title" class="text-[11px] font-semibold text-slate-400 mb-1">Matrix Grid</span>
           <canvas id="import-matrix-preview" width="12" height="12" class="w-24 h-24 image-pixelated bg-black border border-slate-700 rounded"></canvas>
         </div>
         <div class="flex flex-col items-center">
-          <span class="text-[11px] font-semibold text-emerald-400 mb-1">Physical 144×84mm View</span>
+          <span id="import-phys-title" class="text-[11px] font-semibold text-emerald-400 mb-1">Physical View</span>
           <div class="w-28 h-[65px] bg-black border border-slate-700 rounded overflow-hidden flex items-center justify-center">
             <canvas id="import-physical-preview" width="144" height="84" class="w-full h-full"></canvas>
           </div>
@@ -313,10 +604,10 @@
           <label class="font-semibold text-slate-300 block mb-1">Aspect Ratio Mode</label>
           <div class="grid grid-cols-2 gap-2">
             <button id="import-mode-anamorphic" class="p-2 rounded-lg bg-indigo-600 text-white font-medium border border-indigo-500 text-left">
-              <div class="font-bold">Anamorphic (Circles stay round!)</div>
+              <div class="font-bold">Anamorphic (Shapes stay true!)</div>
             </button>
             <button id="import-mode-stretch" class="p-2 rounded-lg bg-slate-800 text-slate-300 font-medium border border-slate-700 text-left">
-              <div class="font-bold">Square 1:1 (Stretch)</div>
+              <div class="font-bold">Grid 1:1 (Stretch)</div>
             </button>
           </div>
         </div>
@@ -364,85 +655,31 @@
     </div>
   </div>
 
-  <!-- MODAL: SETTINGS -->
-  <div id="modal-settings" class="fixed inset-0 modal-backdrop z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 shadow-2xl flex flex-col gap-4">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 class="font-bold text-base text-white">Matrix Dimensions & Wiring</h3>
-        <button class="modal-close text-slate-400 hover:text-white text-lg font-bold">&times;</button>
-      </div>
-
-      <div class="space-y-3 text-xs">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="font-semibold text-slate-300 block mb-1">Physical Width (mm)</label>
-            <input type="number" id="setting-width-mm" value="144" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white">
-          </div>
-          <div>
-            <label class="font-semibold text-slate-300 block mb-1">Physical Height (mm)</label>
-            <input type="number" id="setting-height-mm" value="84" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white">
-          </div>
-        </div>
-
-        <div>
-          <label class="font-semibold text-slate-300 block mb-1">Strip Wiring Direction</label>
-          <select id="setting-wiring-dir" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white">
-            <option value="vertical" selected>Vertical Strips (12 strips along height)</option>
-            <option value="horizontal">Horizontal Strips (12 strips along width)</option>
-          </select>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="font-semibold text-slate-300 block mb-1">Layout</label>
-            <select id="setting-serpentine" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white">
-              <option value="true" selected>Serpentine (Zig-zag)</option>
-              <option value="false">Non-Serpentine (Parallel)</option>
-            </select>
-          </div>
-          <div>
-            <label class="font-semibold text-slate-300 block mb-1">First LED Corner</label>
-            <select id="setting-start-corner" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white">
-              <option value="top-left" selected>Top-Left</option>
-              <option value="bottom-left">Bottom-Left</option>
-              <option value="top-right">Top-Right</option>
-              <option value="bottom-right">Bottom-Right</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-        <button class="modal-close px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white">Save Configuration</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Integrated Standalone Engine Script -->
   <script>
-    // Bulletproof State Architecture
-    function createBlankGrid(w = 12, h = 12) {
+    // Bulletproof State Architecture with Dynamic Dimensions
+    function createBlankGrid(w = state.width, h = state.height) {
       return Array.from({ length: h }, () => Array(w).fill('#000000'));
     }
 
     const state = {
-      width: 12,
-      height: 12,
-      widthMm: 144,
-      heightMm: 84,
+      width: parseInt(localStorage.getItem('panel_width')) || 12,
+      height: parseInt(localStorage.getItem('panel_height')) || 12,
+      widthMm: parseFloat(localStorage.getItem('panel_width_mm')) || 144,
+      heightMm: parseFloat(localStorage.getItem('panel_height_mm')) || 84,
       get pixelRatio() {
-        return (this.widthMm / this.width) / (this.heightMm / this.height); // 1.714
+        return (this.widthMm / this.width) / (this.heightMm / this.height);
       },
       viewMode: 'physical',
       activeTool: 'pencil',
       currentColor: '#FF0055',
       recentColors: ['#FF0055', '#FF7700', '#FFEA00', '#00FF66', '#00E5FF', '#7B2CBF', '#FFFFFF', '#000000'],
-      frames: [createBlankGrid(12, 12)], // Initialized immediately so never undefined!
+      frames: [],
       currentFrameIdx: 0,
       isPlaying: false,
       fps: 4,
       playTimer: null,
-      history: [createBlankGrid(12, 12)],
+      history: [],
       historyStep: 0,
       isPointerDown: false,
       lastCoord: null,
@@ -451,11 +688,15 @@
       wledIp: localStorage.getItem('wled_ip') || '',
       wledAutoSync: false,
       wiring: {
-        stripOrientation: 'vertical',
-        serpentine: true,
-        startCorner: 'top-left'
+        stripOrientation: localStorage.getItem('panel_wiring_dir') || 'vertical',
+        serpentine: localStorage.getItem('panel_serpentine') !== 'false',
+        startCorner: localStorage.getItem('panel_start_corner') || 'top-left'
       }
     };
+
+    // Initialize frames buffer immediately
+    state.frames = [createBlankGrid(state.width, state.height)];
+    state.history = [createBlankGrid(state.width, state.height)];
 
     let paintCanvas, paintCtx;
     let simCanvas, simCtx;
@@ -493,6 +734,7 @@
       initTransforms();
       initWledSettings();
       initModals();
+      updateHeaderBadges();
 
       resizeCanvasView();
       window.addEventListener('resize', resizeCanvasView);
@@ -501,13 +743,35 @@
       renderFramesStrip();
     });
 
+    function updateHeaderBadges() {
+      const badgeRes = document.getElementById('header-badge-res');
+      const badgeMm = document.getElementById('header-badge-mm');
+      const pitchDesc = document.getElementById('header-pitch-desc');
+      const canvasPitch = document.getElementById('canvas-pitch-text');
+      const simAspect = document.getElementById('sim-aspect-badge');
+      const quickPng = document.getElementById('btn-quick-png');
+      const quickGlow = document.getElementById('btn-quick-glow-png');
+
+      const pitchX = (state.widthMm / state.width).toFixed(1);
+      const pitchY = (state.heightMm / state.height).toFixed(1);
+      const par = state.pixelRatio.toFixed(3);
+
+      if (badgeRes) badgeRes.textContent = `${state.width}×${state.height}`;
+      if (badgeMm) badgeMm.textContent = `${state.widthMm}×${state.heightMm} mm`;
+      if (pitchDesc) pitchDesc.innerHTML = `Pitch: <strong>${pitchX}mm</strong> W × <strong>${pitchY}mm</strong> H (${par}:1 PAR)`;
+      if (canvasPitch) canvasPitch.innerHTML = `Pitch: <strong>${pitchX}mm</strong> × <strong>${pitchY}mm</strong> (${par}:1)`;
+      if (simAspect) simAspect.textContent = `${par}:1`;
+      if (quickPng) quickPng.querySelector('span').textContent = `Download ${state.width}×${state.height} Pixel PNG`;
+      if (quickGlow) quickGlow.querySelector('span').textContent = `Download ${state.widthMm}×${state.heightMm}mm Glowing Render`;
+    }
+
     function resizeCanvasView() {
-      const maxWidth = Math.min(window.innerWidth - 40, 432);
-      const maxHeight = Math.min(window.innerHeight - 320, 360);
+      const maxWidth = Math.min(window.innerWidth - 40, 480);
+      const maxHeight = Math.min(window.innerHeight - 320, 380);
 
       let targetW, targetH;
       if (state.viewMode === 'physical') {
-        const aspect = state.widthMm / state.heightMm; // 1.714
+        const aspect = state.widthMm / state.heightMm;
         targetW = maxWidth;
         targetH = targetW / aspect;
         if (targetH > maxHeight) {
@@ -515,7 +779,7 @@
           targetW = targetH * aspect;
         }
       } else {
-        const size = Math.min(maxWidth, maxHeight, 300);
+        const size = Math.min(maxWidth, maxHeight, 320);
         targetW = size;
         targetH = size;
       }
@@ -537,11 +801,11 @@
       paintCtx.fillStyle = '#05050a';
       paintCtx.fillRect(0, 0, w, h);
 
-      const inset = Math.max(1.5, Math.min(cellW, cellH) * 0.08);
+      const inset = Math.max(1, Math.min(cellW, cellH) * 0.08);
 
       for (let y = 0; y < state.height; y++) {
         for (let x = 0; x < state.width; x++) {
-          const color = grid[y][x];
+          const color = grid[y] && grid[y][x] ? grid[y][x] : '#000000';
           const isBlack = color === '#000000' || color === '#000';
           const cx = x * cellW;
           const cy = y * cellH;
@@ -554,7 +818,7 @@
           paintCtx.fillStyle = isBlack ? '#1e293b' : color;
           paintCtx.beginPath();
           if (paintCtx.roundRect) {
-            paintCtx.roundRect(cx + inset, cy + inset, cellW - inset * 2, cellH - inset * 2, 4);
+            paintCtx.roundRect(cx + inset, cy + inset, cellW - inset * 2, cellH - inset * 2, Math.max(2, inset));
           } else {
             paintCtx.rect(cx + inset, cy + inset, cellW - inset * 2, cellH - inset * 2);
           }
@@ -563,7 +827,7 @@
           if (!isBlack) {
             paintCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
             paintCtx.beginPath();
-            paintCtx.ellipse(cx + cellW / 2, cy + cellH / 2, Math.max(2, (cellW - inset * 2) * 0.25), Math.max(2, (cellH - inset * 2) * 0.25), 0, 0, Math.PI * 2);
+            paintCtx.ellipse(cx + cellW / 2, cy + cellH / 2, Math.max(1.5, (cellW - inset * 2) * 0.25), Math.max(1.5, (cellH - inset * 2) * 0.25), 0, 0, Math.PI * 2);
             paintCtx.fill();
           }
 
@@ -593,7 +857,7 @@
       tCtx.globalCompositeOperation = 'screen';
       for (let y = 0; y < state.height; y++) {
         for (let x = 0; x < state.width; x++) {
-          const color = grid[y][x];
+          const color = grid[y] && grid[y][x] ? grid[y][x] : '#000000';
           if (color === '#000000') continue;
           const cx = x * cellW + cellW / 2;
           const cy = y * cellH + cellH / 2;
@@ -612,7 +876,7 @@
       // Diode pass
       for (let y = 0; y < state.height; y++) {
         for (let x = 0; x < state.width; x++) {
-          const color = grid[y][x];
+          const color = grid[y] && grid[y][x] ? grid[y][x] : '#000000';
           const isBlack = color === '#000000';
           const cx = x * cellW + cellW / 2;
           const cy = y * cellH + cellH / 2;
@@ -723,7 +987,7 @@
         const cx = (start.x + end.x) / 2;
         const cy = (start.y + end.y) / 2;
         const rx = Math.abs(end.x - start.x) / 2;
-        const ry = rx * state.pixelRatio; // Anamorphic physical compensation!
+        const ry = rx * state.pixelRatio;
         for (let a = 0; a < Math.PI * 2; a += 0.08) {
           const px = Math.round(cx + Math.cos(a) * rx);
           const py = Math.round(cy + Math.sin(a) * ry);
@@ -916,7 +1180,7 @@
       });
     }
 
-    // Animation Frames
+    // Animation Frames Management
     function renderFramesStrip() {
       const container = document.getElementById('frames-strip');
       container.innerHTML = '';
@@ -924,38 +1188,114 @@
       state.frames.forEach((frame, idx) => {
         const thumb = document.createElement('div');
         thumb.className = `frame-thumb ${idx === state.currentFrameIdx ? 'active' : ''}`;
+        thumb.title = `Frame ${idx + 1}`;
         
         const thumbCanvas = document.createElement('canvas');
-        thumbCanvas.width = 12;
-        thumbCanvas.height = 12;
-        thumbCanvas.className = 'w-8 h-8 image-pixelated rounded';
+        thumbCanvas.width = state.width;
+        thumbCanvas.height = state.height;
+        thumbCanvas.className = 'w-9 h-9 image-pixelated rounded';
         const ctx = thumbCanvas.getContext('2d');
 
-        for (let y = 0; y < 12; y++) {
-          for (let x = 0; x < 12; x++) {
-            ctx.fillStyle = frame[y][x];
+        for (let y = 0; y < state.height; y++) {
+          for (let x = 0; x < state.width; x++) {
+            ctx.fillStyle = frame[y] && frame[y][x] ? frame[y][x] : '#000000';
             ctx.fillRect(x, y, 1, 1);
           }
         }
 
         thumb.appendChild(thumbCanvas);
+
+        const badge = document.createElement('span');
+        badge.className = 'frame-thumb-badge';
+        badge.textContent = idx + 1;
+        thumb.appendChild(badge);
+
+        if (state.frames.length > 1) {
+          const delBtn = document.createElement('span');
+          delBtn.className = 'frame-del-btn';
+          delBtn.innerHTML = '&times;';
+          delBtn.title = `Delete Frame ${idx + 1}`;
+          delBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteFrame(idx);
+          };
+          thumb.appendChild(delBtn);
+        }
+
         thumb.onclick = () => {
           state.currentFrameIdx = idx;
           renderCanvas();
           renderFramesStrip();
+          if (state.wledAutoSync) sendToWled();
         };
 
         container.appendChild(thumb);
       });
+
+      const counter = document.getElementById('frame-counter');
+      if (counter) {
+        counter.textContent = `${state.currentFrameIdx + 1} / ${state.frames.length}`;
+      }
+
+      const delBtn = document.getElementById('btn-delete-frame');
+      if (delBtn) {
+        delBtn.style.opacity = state.frames.length > 1 ? '1' : '0.5';
+        delBtn.title = state.frames.length > 1 ? 'Delete current frame' : 'Only 1 frame exists (click Clear to blank it)';
+      }
     }
 
-    document.getElementById('btn-add-frame').onclick = () => {
-      state.frames.push(cloneGrid(getCurrentGrid()));
-      state.currentFrameIdx = state.frames.length - 1;
+    function insertFrame(duplicate = true) {
+      const sourceGrid = duplicate ? getCurrentGrid() : createBlankGrid(state.width, state.height);
+      const newGrid = cloneGrid(sourceGrid);
+      const insertIdx = state.currentFrameIdx + 1;
+      state.frames.splice(insertIdx, 0, newGrid);
+      state.currentFrameIdx = insertIdx;
+
       renderCanvas();
       renderFramesStrip();
       pushHistory();
-    };
+      if (state.wledAutoSync) sendToWled();
+    }
+
+    function deleteFrame(targetIdx = state.currentFrameIdx) {
+      if (state.frames.length <= 1) {
+        state.frames[0] = createBlankGrid(state.width, state.height);
+        state.currentFrameIdx = 0;
+      } else {
+        state.frames.splice(targetIdx, 1);
+        if (state.currentFrameIdx >= state.frames.length) {
+          state.currentFrameIdx = state.frames.length - 1;
+        } else if (state.currentFrameIdx > targetIdx) {
+          state.currentFrameIdx--;
+        }
+      }
+
+      renderCanvas();
+      renderFramesStrip();
+      pushHistory();
+      if (state.wledAutoSync) sendToWled();
+    }
+
+    function moveFrame(dir) {
+      const targetIdx = state.currentFrameIdx + dir;
+      if (targetIdx < 0 || targetIdx >= state.frames.length) return;
+
+      const temp = state.frames[state.currentFrameIdx];
+      state.frames[state.currentFrameIdx] = state.frames[targetIdx];
+      state.frames[targetIdx] = temp;
+      state.currentFrameIdx = targetIdx;
+
+      renderCanvas();
+      renderFramesStrip();
+      pushHistory();
+      if (state.wledAutoSync) sendToWled();
+    }
+
+    document.getElementById('btn-add-frame').onclick = () => insertFrame(true);
+    document.getElementById('btn-add-blank-frame').onclick = () => insertFrame(false);
+    document.getElementById('btn-delete-frame').onclick = () => deleteFrame();
+    document.getElementById('btn-move-frame-left').onclick = () => moveFrame(-1);
+    document.getElementById('btn-move-frame-right').onclick = () => moveFrame(1);
 
     document.getElementById('anim-fps').oninput = (e) => {
       state.fps = parseInt(e.target.value);
@@ -988,41 +1328,62 @@
       }, 1000 / state.fps);
     }
 
-    // WLED Integration
-    function initWledSettings() {
-      const ipInput = document.getElementById('wled-ip-input');
-      if (state.wledIp) ipInput.value = state.wledIp;
+    // Dynamic Matrix Dimension Resizing
+    function applyDimensions(newW, newH, newWmm, newHmm, clearArt = false) {
+      const oldW = state.width;
+      const oldH = state.height;
 
-      ipInput.onchange = (e) => {
-        state.wledIp = e.target.value.trim();
-        localStorage.setItem('wled_ip', state.wledIp);
-      };
+      state.width = Math.max(1, Math.min(128, parseInt(newW) || 12));
+      state.height = Math.max(1, Math.min(128, parseInt(newH) || 12));
+      state.widthMm = Math.max(1, parseFloat(newWmm) || 144);
+      state.heightMm = Math.max(1, parseFloat(newHmm) || 84);
 
-      document.getElementById('btn-sync-wled').onclick = sendToWled;
-      document.getElementById('wled-auto-sync').onchange = (e) => {
-        state.wledAutoSync = e.target.checked;
-      };
+      localStorage.setItem('panel_width', state.width);
+      localStorage.setItem('panel_height', state.height);
+      localStorage.setItem('panel_width_mm', state.widthMm);
+      localStorage.setItem('panel_height_mm', state.heightMm);
 
-      // Settings modal inputs
-      document.getElementById('setting-width-mm').onchange = (e) => {
-        state.widthMm = parseFloat(e.target.value) || 144;
-        resizeCanvasView();
-      };
-      document.getElementById('setting-height-mm').onchange = (e) => {
-        state.heightMm = parseFloat(e.target.value) || 84;
-        resizeCanvasView();
-      };
-      document.getElementById('setting-wiring-dir').onchange = (e) => {
-        state.wiring.stripOrientation = e.target.value;
-      };
-      document.getElementById('setting-serpentine').onchange = (e) => {
-        state.wiring.serpentine = e.target.value === 'true';
-      };
-      document.getElementById('setting-start-corner').onchange = (e) => {
-        state.wiring.startCorner = e.target.value;
-      };
+      state.frames = state.frames.map(oldFrame => {
+        const newGrid = createBlankGrid(state.width, state.height);
+        if (!clearArt && oldFrame) {
+          for (let y = 0; y < Math.min(oldH, state.height); y++) {
+            for (let x = 0; x < Math.min(oldW, state.width); x++) {
+              if (oldFrame[y] && oldFrame[y][x]) {
+                newGrid[y][x] = oldFrame[y][x];
+              }
+            }
+          }
+        }
+        return newGrid;
+      });
+
+      state.history = [cloneGrid(getCurrentGrid())];
+      state.historyStep = 0;
+
+      updateHeaderBadges();
+      resizeCanvasView();
+      renderCanvas();
+      renderFramesStrip();
     }
 
+    function updateSettingsCalc() {
+      const w = parseInt(document.getElementById('setting-width-leds').value) || 12;
+      const h = parseInt(document.getElementById('setting-height-leds').value) || 12;
+      const wmm = parseFloat(document.getElementById('setting-width-mm').value) || 144;
+      const hmm = parseFloat(document.getElementById('setting-height-mm').value) || 84;
+
+      const px = (wmm / w).toFixed(2);
+      const py = (hmm / h).toFixed(2);
+      const par = ((wmm / w) / (hmm / h)).toFixed(3);
+      const desc = Math.abs(par - 1) < 0.05 ? 'Square (1:1)' : (par > 1 ? 'Rectangular (Wider)' : 'Rectangular (Taller)');
+
+      document.getElementById('geo-total-leds').textContent = `${w * h} LEDs`;
+      document.getElementById('geo-pitch-x').textContent = `${px} mm/LED`;
+      document.getElementById('geo-pitch-y').textContent = `${py} mm/LED`;
+      document.getElementById('geo-par').textContent = `${par} : 1 (${desc})`;
+    }
+
+    // Wiring Index Calculation
     function getLinearLedIndex(x, y) {
       let col = x;
       let row = y;
@@ -1040,17 +1401,108 @@
       }
     }
 
+    // WLED Integration & Network Engine
+    function getCleanWledIp() {
+      let ip = (state.wledIp || '').trim();
+      ip = ip.replace(/^https?:\/\//i, '');
+      ip = ip.replace(/\/.*$/, '').trim();
+      return ip;
+    }
+
+    function initWledSettings() {
+      const ipInput = document.getElementById('wled-ip-input');
+      if (state.wledIp) ipInput.value = state.wledIp;
+
+      ipInput.onchange = (e) => {
+        state.wledIp = getCleanWledIp();
+        localStorage.setItem('wled_ip', state.wledIp);
+        ipInput.value = state.wledIp;
+      };
+
+      document.getElementById('btn-sync-wled').onclick = sendToWled;
+      document.getElementById('btn-ping-wled').onclick = pingWled;
+      document.getElementById('btn-wled-diag').onclick = () => showWledDiag(getCleanWledIp(), new Error('Manual diagnosis opened.'));
+
+      document.getElementById('wled-auto-sync').onchange = (e) => {
+        state.wledAutoSync = e.target.checked;
+      };
+
+      // Header click shortcuts to open Setup modal
+      document.getElementById('header-badge-res').onclick = () => openSettingsModal();
+      document.getElementById('header-badge-mm').onclick = () => openSettingsModal();
+      document.getElementById('header-logo-badge').onclick = () => openSettingsModal();
+      document.getElementById('canvas-pitch-pill').onclick = () => openSettingsModal();
+    }
+
+    function openSettingsModal() {
+      const modal = document.getElementById('modal-settings');
+      document.getElementById('setting-width-leds').value = state.width;
+      document.getElementById('setting-height-leds').value = state.height;
+      document.getElementById('setting-width-mm').value = state.widthMm;
+      document.getElementById('setting-height-mm').value = state.heightMm;
+      document.getElementById('setting-wiring-dir').value = state.wiring.stripOrientation;
+      document.getElementById('setting-serpentine').value = state.wiring.serpentine.toString();
+      document.getElementById('setting-start-corner').value = state.wiring.startCorner;
+      updateSettingsCalc();
+      modal.classList.remove('hidden');
+    }
+
+    async function pingWled() {
+      const cleanIp = getCleanWledIp();
+      if (!cleanIp) {
+        alert('Please enter your WLED device IP address first!');
+        return;
+      }
+
+      const banner = document.getElementById('wled-info-banner');
+      const pill = document.getElementById('wled-pill-status');
+      const dot = document.getElementById('wled-dot-status');
+      pill.textContent = 'Testing...';
+      pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-amber-500/20 text-amber-300';
+      banner.classList.remove('hidden');
+      banner.textContent = `Connecting to http://${cleanIp}/json/info...`;
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        const res = await fetch(`http://${cleanIp}/json/info`, {
+          method: 'GET',
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const info = await res.json();
+          pill.textContent = 'Connected';
+          pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-emerald-500/20 text-emerald-400';
+          dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+          banner.innerHTML = `<span class="text-emerald-400 font-bold">✅ Online:</span> WLED v${info.ver || ''} (${info.name || cleanIp}), ${info.leds?.count || '?'} LEDs total.`;
+        } else {
+          throw new Error(`HTTP ${res.status}`);
+        }
+      } catch (err) {
+        pill.textContent = 'Err';
+        pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-rose-500/20 text-rose-400';
+        dot.className = 'w-2 h-2 rounded-full bg-rose-400';
+        banner.innerHTML = `<span class="text-rose-400 font-bold">❌ Connection Failed:</span> ${err.message || 'Cannot reach WLED'}. <a href="javascript:void(0)" onclick="document.getElementById('btn-wled-diag').click()" class="underline text-indigo-400">View Fix</a>`;
+        showWledDiag(cleanIp, err);
+      }
+    }
+
     async function sendToWled() {
-      if (!state.wledIp) {
+      const cleanIp = getCleanWledIp();
+      if (!cleanIp) {
         alert('Please enter your WLED device IP address first!');
         return;
       }
 
       const pill = document.getElementById('wled-pill-status');
+      const dot = document.getElementById('wled-dot-status');
       pill.textContent = 'Pushing...';
       pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-amber-500/20 text-amber-300';
 
       const grid = getCurrentGrid();
+      const totalLeds = state.width * state.height;
       const iPayload = [];
       for (let y = 0; y < state.height; y++) {
         for (let x = 0; x < state.width; x++) {
@@ -1059,22 +1511,90 @@
         }
       }
 
+      const payload = {
+        on: true,
+        transition: 0,
+        seg: [
+          {
+            id: 0,
+            start: 0,
+            stop: totalLeds,
+            i: iPayload
+          }
+        ]
+      };
+
       try {
-        const res = await fetch(`http://${state.wledIp}/json/state`, {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        const res = await fetch(`http://${cleanIp}/json/state`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ on: true, seg: [{ id: 0, i: iPayload }] })
+          body: JSON.stringify(payload),
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
+
         if (res.ok) {
           pill.textContent = 'Synced';
           pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-emerald-500/20 text-emerald-400';
+          dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
         } else {
-          throw new Error('HTTP ' + res.status);
+          throw new Error(`HTTP ${res.status}`);
         }
       } catch (err) {
-        pill.textContent = 'Error';
+        pill.textContent = 'Err';
         pill.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-rose-500/20 text-rose-400';
+        dot.className = 'w-2 h-2 rounded-full bg-rose-400';
+        showWledDiag(cleanIp, err);
       }
+    }
+
+    function showWledDiag(cleanIp, err) {
+      const isHttps = window.location.protocol === 'https:';
+      const modal = document.getElementById('modal-wled-diag');
+      document.getElementById('diag-target-ip').textContent = cleanIp ? `http://${cleanIp}` : 'Not configured';
+      document.getElementById('diag-status-badge').textContent = isHttps ? 'Mixed Content Block' : 'Network Failed';
+
+      let msg = err.name === 'AbortError' 
+        ? 'Connection timed out after 4 seconds. WLED device did not reply.' 
+        : (err.message || 'Network request failed');
+
+      if (isHttps) {
+        msg = 'Failed to fetch — Blocked by browser Mixed Content Policy (HTTPS website cannot make HTTP calls).';
+        document.getElementById('diag-mixed-content-warning').classList.remove('hidden');
+      } else {
+        document.getElementById('diag-mixed-content-warning').classList.add('hidden');
+      }
+
+      document.getElementById('diag-error-message').textContent = msg;
+
+      // Diagnostic action buttons
+      document.getElementById('btn-diag-open-wled').onclick = () => {
+        if (cleanIp) window.open(`http://${cleanIp}`, '_blank');
+      };
+
+      document.getElementById('btn-diag-copy-curl').onclick = () => {
+        const curlCmd = `curl -X POST -H "Content-Type: application/json" -d "{\\"on\\":true,\\"bri\\":128}" http://${cleanIp}/json/state`;
+        navigator.clipboard.writeText(curlCmd);
+        alert('Copied test cURL command to clipboard!');
+      };
+
+      document.getElementById('btn-diag-copy-preset').onclick = () => {
+        const grid = getCurrentGrid();
+        const totalLeds = state.width * state.height;
+        const iArr = [];
+        for (let y = 0; y < state.height; y++) {
+          for (let x = 0; x < state.width; x++) {
+            iArr.push(getLinearLedIndex(x, y), grid[y][x].replace('#', ''));
+          }
+        }
+        const jsonStr = JSON.stringify({ on: true, bri: 128, transition: 0, seg: [{ id: 0, start: 0, stop: totalLeds, i: iArr }] }, null, 2);
+        navigator.clipboard.writeText(jsonStr);
+        alert('WLED JSON Preset copied to clipboard!');
+      };
+
+      modal.classList.remove('hidden');
     }
 
     // Modal Handlers & Importer
@@ -1082,21 +1602,63 @@
       const modalImport = document.getElementById('modal-import');
       const modalExport = document.getElementById('modal-export');
       const modalSettings = document.getElementById('modal-settings');
+      const modalWledDiag = document.getElementById('modal-wled-diag');
 
-      document.getElementById('btn-open-import').onclick = () => modalImport.classList.remove('hidden');
+      document.getElementById('btn-open-import').onclick = () => {
+        document.getElementById('import-grid-title').textContent = `${state.width}×${state.height} Grid`;
+        document.getElementById('import-phys-title').textContent = `${state.widthMm}×${state.heightMm}mm Physical`;
+        modalImport.classList.remove('hidden');
+      };
       document.getElementById('btn-open-export').onclick = () => {
         modalExport.classList.remove('hidden');
         updateExportBox();
       };
-      document.getElementById('btn-open-settings').onclick = () => modalSettings.classList.remove('hidden');
+      document.getElementById('btn-open-settings').onclick = openSettingsModal;
 
       document.querySelectorAll('.modal-close').forEach(btn => {
         btn.onclick = () => {
           modalImport.classList.add('hidden');
           modalExport.classList.add('hidden');
           modalSettings.classList.add('hidden');
+          modalWledDiag.classList.add('hidden');
         };
       });
+
+      // Settings live calculations
+      ['setting-width-leds', 'setting-height-leds', 'setting-width-mm', 'setting-height-mm'].forEach(id => {
+        document.getElementById(id).addEventListener('input', updateSettingsCalc);
+      });
+
+      // Quick preset buttons
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.onclick = () => {
+          document.getElementById('setting-width-leds').value = btn.dataset.w;
+          document.getElementById('setting-height-leds').value = btn.dataset.h;
+          document.getElementById('setting-width-mm').value = btn.dataset.wmm;
+          document.getElementById('setting-height-mm').value = btn.dataset.hmm;
+          updateSettingsCalc();
+        };
+      });
+
+      // Apply settings button
+      document.getElementById('btn-apply-settings').onclick = () => {
+        const newW = document.getElementById('setting-width-leds').value;
+        const newH = document.getElementById('setting-height-leds').value;
+        const newWmm = document.getElementById('setting-width-mm').value;
+        const newHmm = document.getElementById('setting-height-mm').value;
+        const clearArt = document.querySelector('input[name="resize-behavior"]:checked').value === 'clear';
+
+        state.wiring.stripOrientation = document.getElementById('setting-wiring-dir').value;
+        state.wiring.serpentine = document.getElementById('setting-serpentine').value === 'true';
+        state.wiring.startCorner = document.getElementById('setting-start-corner').value;
+
+        localStorage.setItem('panel_wiring_dir', state.wiring.stripOrientation);
+        localStorage.setItem('panel_serpentine', state.wiring.serpentine);
+        localStorage.setItem('panel_start_corner', state.wiring.startCorner);
+
+        applyDimensions(newW, newH, newWmm, newHmm, clearArt);
+        modalSettings.classList.add('hidden');
+      };
 
       // Dropzone & File upload
       const dropzone = document.getElementById('import-dropzone');
@@ -1135,11 +1697,11 @@
 
       document.getElementById('btn-commit-import').onclick = () => {
         const prev = document.getElementById('import-matrix-preview');
-        const data = prev.getContext('2d').getImageData(0, 0, 12, 12).data;
+        const data = prev.getContext('2d').getImageData(0, 0, state.width, state.height).data;
         const grid = getCurrentGrid();
-        for (let y = 0; y < 12; y++) {
-          for (let x = 0; x < 12; x++) {
-            const idx = (y * 12 + x) * 4;
+        for (let y = 0; y < state.height; y++) {
+          for (let x = 0; x < state.width; x++) {
+            const idx = (y * state.width + x) * 4;
             grid[y][x] = '#' + [data[idx], data[idx+1], data[idx+2]].map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase();
           }
         }
@@ -1153,27 +1715,35 @@
     function updateImportPreview() {
       if (!importOriginalImg) return;
       const mCanvas = document.getElementById('import-matrix-preview');
+      mCanvas.width = state.width;
+      mCanvas.height = state.height;
       const mCtx = mCanvas.getContext('2d');
       const bright = parseInt(document.getElementById('import-brightness').value) / 100;
 
       const sample = document.createElement('canvas');
-      sample.width = 12; sample.height = 12;
+      sample.width = state.width; 
+      sample.height = state.height;
       const sCtx = sample.getContext('2d');
       sCtx.fillStyle = '#000000';
-      sCtx.fillRect(0, 0, 12, 12);
+      sCtx.fillRect(0, 0, state.width, state.height);
 
       if (importMode === 'anamorphic') {
         const pAspect = state.widthMm / state.heightMm;
         const iAspect = importOriginalImg.width / importOriginalImg.height;
         let dW, dH;
-        if (iAspect > pAspect) { dW = 12; dH = 12 * (pAspect / iAspect); }
-        else { dH = 12; dW = 12 * (iAspect / pAspect); }
-        sCtx.drawImage(importOriginalImg, (12 - dW) / 2, (12 - dH) / 2, dW, dH);
+        if (iAspect > pAspect) { 
+          dW = state.width; 
+          dH = state.width * (pAspect / iAspect) * (state.height / state.width); 
+        } else { 
+          dH = state.height; 
+          dW = state.height * (iAspect / pAspect) * (state.width / state.height); 
+        }
+        sCtx.drawImage(importOriginalImg, (state.width - dW) / 2, (state.height - dH) / 2, dW, dH);
       } else {
-        sCtx.drawImage(importOriginalImg, 0, 0, 12, 12);
+        sCtx.drawImage(importOriginalImg, 0, 0, state.width, state.height);
       }
 
-      const imgData = sCtx.getImageData(0, 0, 12, 12);
+      const imgData = sCtx.getImageData(0, 0, state.width, state.height);
       for (let i = 0; i < imgData.data.length; i += 4) {
         imgData.data[i] = Math.min(255, imgData.data[i] * bright);
         imgData.data[i+1] = Math.min(255, imgData.data[i+1] * bright);
@@ -1182,15 +1752,22 @@
       mCtx.putImageData(imgData, 0, 0);
 
       const pCanvas = document.getElementById('import-physical-preview');
+      pCanvas.width = 160;
+      pCanvas.height = Math.round(160 / (state.widthMm / state.heightMm));
       const pCtx = pCanvas.getContext('2d');
       pCtx.fillStyle = '#05070d';
-      pCtx.fillRect(0, 0, 144, 84);
-      for (let y = 0; y < 12; y++) {
-        for (let x = 0; x < 12; x++) {
-          const idx = (y * 12 + x) * 4;
+      pCtx.fillRect(0, 0, pCanvas.width, pCanvas.height);
+
+      const cellW = pCanvas.width / state.width;
+      const cellH = pCanvas.height / state.height;
+      const r = Math.min(cellW, cellH) * 0.35;
+
+      for (let y = 0; y < state.height; y++) {
+        for (let x = 0; x < state.width; x++) {
+          const idx = (y * state.width + x) * 4;
           pCtx.fillStyle = `rgb(${imgData.data[idx]},${imgData.data[idx+1]},${imgData.data[idx+2]})`;
           pCtx.beginPath();
-          pCtx.arc(x * 12 + 6, y * 7 + 3.5, 2.8, 0, Math.PI * 2);
+          pCtx.arc(x * cellW + cellW / 2, y * cellH + cellH / 2, Math.max(1, r), 0, Math.PI * 2);
           pCtx.fill();
         }
       }
@@ -1198,14 +1775,20 @@
 
     function updateExportBox() {
       const grid = getCurrentGrid();
+      const totalLeds = state.width * state.height;
       const iArr = [];
-      for (let y = 0; y < 12; y++) {
-        for (let x = 0; x < 12; x++) {
+      for (let y = 0; y < state.height; y++) {
+        for (let x = 0; x < state.width; x++) {
           const idx = getLinearLedIndex(x, y);
           iArr.push(idx, grid[y][x].replace('#', ''));
         }
       }
-      document.getElementById('export-code-box').value = JSON.stringify({ on: true, bri: 128, seg: [{ id: 0, i: iArr }] }, null, 2);
+      document.getElementById('export-code-box').value = JSON.stringify({
+        on: true,
+        bri: 128,
+        transition: 0,
+        seg: [{ id: 0, start: 0, stop: totalLeds, i: iArr }]
+      }, null, 2);
     }
 
     document.getElementById('export-wled-json').onclick = () => {
@@ -1216,12 +1799,22 @@
 
     document.getElementById('export-fastled-c').onclick = () => {
       const grid = getCurrentGrid();
-      let code = '// FastLED PROGMEM 12x12 Frame\nconst uint32_t PROGMEM matrix_12x12[144] = {\n  ';
-      for (let y = 0; y < 12; y++) {
-        for (let x = 0; x < 12; x++) {
+      const totalLeds = state.width * state.height;
+      let code = `// FastLED PROGMEM ${state.width}x${state.height} Frame (${state.widthMm}mm x ${state.heightMm}mm)\n`;
+      code += `// Total LEDs: ${totalLeds} | Strip: ${state.wiring.stripOrientation} | Serpentine: ${state.wiring.serpentine}\n`;
+      code += `const uint32_t PROGMEM matrix_art[${totalLeds}] = {\n  `;
+      
+      const ordered = new Array(totalLeds).fill('0x000000');
+      for (let y = 0; y < state.height; y++) {
+        for (let x = 0; x < state.width; x++) {
           const idx = getLinearLedIndex(x, y);
-          code += '0x' + grid[y][x].replace('#', '') + (idx < 143 ? ', ' : '');
+          ordered[idx] = '0x' + grid[y][x].replace('#', '');
         }
+      }
+
+      for (let i = 0; i < totalLeds; i++) {
+        code += ordered[i] + (i < totalLeds - 1 ? ', ' : '');
+        if ((i + 1) % state.width === 0 && i < totalLeds - 1) code += '\n  ';
       }
       code += '\n};\n';
       document.getElementById('export-code-box').value = code;
@@ -1232,30 +1825,36 @@
     // PNG Downloads
     document.getElementById('btn-quick-png').onclick = () => {
       const c = document.createElement('canvas');
-      c.width = 12; c.height = 12;
+      c.width = state.width;
+      c.height = state.height;
       const ctx = c.getContext('2d');
       const grid = getCurrentGrid();
-      for (let y = 0; y < 12; y++) {
-        for (let x = 0; x < 12; x++) {
+      for (let y = 0; y < state.height; y++) {
+        for (let x = 0; x < state.width; x++) {
           ctx.fillStyle = grid[y][x];
           ctx.fillRect(x, y, 1, 1);
         }
       }
-      const a = document.createElement('a');
-      a.href = c.toDataURL();
-      a.download = 'wled_12x12.png';
-      a.click();
+      triggerDownload(c.toDataURL(), `wled_${state.width}x${state.height}.png`);
     };
 
     document.getElementById('btn-quick-glow-png').onclick = () => {
       const c = document.createElement('canvas');
-      c.width = 1440; c.height = 840;
+      const aspect = state.widthMm / state.heightMm;
+      c.width = Math.round(840 * aspect);
+      c.height = 840;
       renderSimulation(c, c.getContext('2d'));
-      const a = document.createElement('a');
-      a.href = c.toDataURL();
-      a.download = 'wled_144x84mm_glow_render.png';
-      a.click();
+      triggerDownload(c.toDataURL(), `wled_${state.widthMm}x${state.heightMm}mm_glow_render.png`);
     };
+
+    function triggerDownload(url, filename) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
   </script>
 </body>
 </html>
